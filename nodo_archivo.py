@@ -9,6 +9,14 @@ class NodoArchivo:
     def agregar_hijo(self, hijo):#permite agregar un hijo a la lista de hijos del nodo
         if self.es_carpeta:
             self.hijos.append(hijo)
+            
+            
+    def buscar_hijo(self, nombre):
+        for hijo in self.hijos:
+            if hijo.nombre == nombre:
+                return hijo
+
+        return None 
 
         
     def buscar(self, nombre):#busca de manera recursiva un nodo con el nombre especificado en el árbol de nodos
@@ -32,10 +40,10 @@ class NodoArchivo:
          
             
     def eliminar_contenido(self):#vacia el contenido de un nodo y sus hijos de manera recursiva
-            for hijo in self.hijos:
-                hijo.eliminar_contenido()
+        for hijo in self.hijos:
+            hijo.eliminar_contenido()
     
-            self.hijos.clear()
+        self.hijos.clear()
            
             
     def eliminar(self, nombre): #busca lo que voy a eliminar
