@@ -9,19 +9,18 @@ class Servidor:
         
         
     def crear_nodo(self, nombre, es_carpeta, carpeta_padre="/"):
-        nuevo_nodo = NodoArchivo(nombre, es_carpeta)
-
-        if carpeta_padre == "/":
-            self.raiz.agregar_hijo(nuevo_nodo)
-            return True
-
         padre = self.buscar_por_ruta(carpeta_padre)
 
-        if padre is not None and padre.es_carpeta:
-            padre.agregar_hijo(nuevo_nodo)
-            return True
+        if padre is None or not padre.es_carpeta:
+            return False
 
-        return False
+        if padre.buscar_hijo(nombre) is not None:
+            return False
+
+        nuevo_nodo = NodoArchivo(nombre, es_carpeta)
+        padre.agregar_hijo(nuevo_nodo)
+
+        return True
     
               
     def buscar_nodo(self, nombre):
