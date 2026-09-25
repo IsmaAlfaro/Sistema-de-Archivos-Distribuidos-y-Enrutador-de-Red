@@ -1,12 +1,12 @@
 from nodo_archivo import NodoArchivo
-
+from tabla_hash import TablaHash
 
 class Servidor:
 
     def __init__(self, nombre):  # Constructor
         self.nombre = nombre
         self.raiz = NodoArchivo("/", True)
-        
+        self.usuarios = TablaHash()
         
     def crear_nodo(self, nombre, es_carpeta, carpeta_padre="/"):
         padre = self.buscar_por_ruta(carpeta_padre)
