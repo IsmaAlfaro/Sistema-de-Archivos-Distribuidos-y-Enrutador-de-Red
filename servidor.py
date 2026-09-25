@@ -26,10 +26,27 @@ class Servidor:
               
     def buscar_nodo(self, nombre):
          return self.raiz.buscar(nombre)
-       
      
+    def buscar_por_ruta(self, ruta):
+        if ruta == "/":
+            return self.raiz
+
+        partes = ruta.strip("/").split("/")
+        nodo_actual = self.raiz
+
+        for parte in partes:
+            nodo_actual = nodo_actual.buscar_hijo(parte)
+
+            if nodo_actual is None:
+                return None
+
+        return nodo_actual
+            
+        
     def eliminar_nodo(self, nombre):
          return self.raiz.eliminar(nombre)
      
     def mostrar_estructura(self):
          self.raiz.mostrar_arbol()
+         
+    
