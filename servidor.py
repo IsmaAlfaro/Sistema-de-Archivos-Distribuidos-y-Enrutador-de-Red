@@ -14,14 +14,14 @@ class Servidor:
         if carpeta_padre == "/":
             self.raiz.agregar_hijo(nuevo_nodo)
             return True
-        
-        padre = self.raiz.buscar(carpeta_padre)
-        
+
+        padre = self.buscar_por_ruta(carpeta_padre)
+
         if padre is not None and padre.es_carpeta:
             padre.agregar_hijo(nuevo_nodo)
             return True
-        
-        return False 
+
+        return False
     
               
     def buscar_nodo(self, nombre):
@@ -43,8 +43,21 @@ class Servidor:
         return nodo_actual
             
         
-    def eliminar_nodo(self, nombre):
-         return self.raiz.eliminar(nombre)
+    def eliminar_nodo(self, ruta):
+        if ruta == "/":
+            return False
+
+        partes = ruta.strip("/").split("/")
+        nombre = partes[-1]
+
+        ruta_padre = "/" + "/".join(partes[:-1])
+
+        padre = self.buscar_por_ruta(ruta_padre)
+
+        if padre is None:
+            return False
+
+        return padre.eliminar(nombre)
      
     def mostrar_estructura(self):
          self.raiz.mostrar_arbol()
