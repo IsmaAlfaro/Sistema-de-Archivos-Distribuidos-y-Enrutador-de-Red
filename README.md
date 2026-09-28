@@ -26,6 +26,22 @@ Necesito usar una tabla hash en Python para guardar usuarios y contraseñas, deb
 Prompt 8
 Como hago para verificar que un usuario ya se registro en la tabla hash?
 
+Prompt 9
+Necesito autenticar un usuario buscando su nombre en la tabla hash y comprobar que la contraseña ingresada coincida con la guardada.
+
 Prompt 10
-Necesito autenticar un usuario buscando su nombre en la tabla hash y comprobar que la contraseña ingresada coincida con la guardada. -->
+Cómo puedo crear un método que agregue un servidor al grafo y evite agregarlo si ya esta?
+
+Prompt 11
+Un metodo para agregar conexiones entre dos servidores, y poder verificar que existan y que se guarden en ambos sentidos.
+
+Prompt 12
+Como puedo eliminar las conexiones, tengo esto
+
+Prompt 13
+Ocupo crear un metodo en python que recorra el grafo y muestre cada servidor junto con los servidores a los que está conectado y la latencia de cada conexión, me ayudas a crearlo y me explicas lo que hiciste paso a paso.
+
+
+
+ -->
 # -----------------------------------------------------------------------------------------------------------
