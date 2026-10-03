@@ -123,7 +123,7 @@ def seleccionar_servidor(servidores):
         for i in range(len(servidores)):
             print(f"{i + 1}. {servidores[i].nombre}")
 
-        print("0. Salir")
+        print("0. Volver")
         print("==================================================")
 
         opcion = input("Seleccione un servidor: ")
