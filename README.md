@@ -22,11 +22,14 @@ paquetes por el camino más corto y auditoría de las operaciones.
 - Registro de servidores en un grafo, evitando nombres duplicados.
 - Creación y eliminación de conexiones bidireccionales con latencia positiva.
 - Diagnóstico BFS: recorrido, servidores no alcanzables, servidores aislados y estado de conectividad.
+- Menú de administración de red integrado en `main.py`, con selección mediante `match/case` y manejo de errores.
 - Pruebas de conexiones, eliminación y diagnóstico de red con `assert`.
 
-El módulo de red está disponible mediante `GrafoRed` y sus pruebas. Su integración
-con los menús de `main.py` está pendiente. Los usuarios, archivos y conexiones se
-mantienen en memoria durante la ejecución.
+El menú principal permite acceder a los servidores o administrar la red.
+`main()` crea una única instancia de `GrafoRed` con los mismos objetos `Servidor`
+utilizados para autenticación y archivos, y la pasa a `menu_red(red)`.
+Los usuarios, archivos y conexiones se mantienen en memoria durante la ejecución;
+la red no se vuelve a crear al abrir el submenú.
 
 ### Pendientes
 
@@ -34,7 +37,7 @@ mantienen en memoria durante la ejecución.
 - Simular el envío de paquetes mostrando cada salto y el costo total.
 - Registrar automáticamente fecha, hora y detalle de eventos en `network_audit_log.txt` mediante append.
 - Consultar el archivo de auditoría desde el menú.
-- Integrar conexiones, diagnóstico y enrutamiento en el menú utilizando los mismos objetos `Servidor`.
+- Integrar el enrutamiento y la auditoría en los menús existentes.
 - Completar la organización de menús por módulos.
 - Corregir la eliminación por ruta: seleccionar al hijo directo de la carpeta padre antes de borrar su subárbol. Actualmente la búsqueda puede eliminar un descendiente de otra ruta con el mismo nombre.
 - Validar nombres de archivos y carpetas para rechazar valores vacíos o que contengan `/`.
@@ -48,11 +51,13 @@ mantienen en memoria durante la ejecución.
 - **Tabla hash manual:** arreglo de listas, función propia basada en la suma de `ord()` y módulo por el tamaño de la tabla. Las colisiones se resuelven mediante encadenamiento.
 - **Grafo ponderado no dirigido:** listas paralelas de servidores y adyacencias; cada conexión almacena `(indice_vecino, latencia)` en ambos extremos.
 - **BFS:** cola implementada con una lista y un índice de lectura, más una lista de visitados para evitar repeticiones.
-- **Excepciones:** las operaciones inválidas de la red lanzan `ValueError`; el menú deberá capturarlas para informar al usuario.
+- **Excepciones:** las operaciones inválidas de la red lanzan `ValueError`; `menu_red` las captura para informar al usuario. También maneja errores al convertir la latencia a número.
+- **Selección con `match/case`:** el menú de red ofrece agregar conexiones, eliminarlas, diagnosticar y volver al menú principal.
 
 ## Ejecución y pruebas
 
-Requiere Python 3. Los módulos actuales no necesitan paquetes externos.
+Requiere Python 3.10 o superior por el uso de `match/case` en el menú de red.
+Los módulos actuales no necesitan paquetes externos.
 Ejecutar desde la raíz del repositorio:
 
 ```bash
@@ -96,10 +101,25 @@ Ismael reportó la ejecución satisfactoria de estas pruebas durante el desarrol
 guiado. Esto verifica los casos anteriores; la integración completa del programa
 todavía debe probarse cuando estén disponibles los demás módulos.
 
+### Validación manual del menú de red
+
+Ismael ejecutó `main.py` y compartió capturas de las siguientes comprobaciones:
+
+| Acción desde el menú | Resultado observado |
+|---|---|
+| Conectar Servidor 1 con Servidor 2, con latencia 10 ms. | Mensaje de conexión agregada con latencia `10.0`. |
+| Conectar Servidor 2 con Servidor 3, con latencia 15 ms. | Mensaje de conexión agregada con latencia `15.0`. |
+| Diagnosticar desde Servidor 1 con ambos enlaces. | Recorrido `Servidor 1 -> Servidor 2 -> Servidor 3`, red conectada y ningún servidor aislado o no alcanzable. |
+| Diagnosticar después de eliminar el enlace entre Servidor 2 y Servidor 3. | Recorrido `Servidor 1 -> Servidor 2`, red desconectada y Servidor 3 identificado como aislado y no alcanzable. |
+
+El orden mostrado es el recorrido de visita BFS, no una ruta de envío de paquetes.
+La comprobación manual de salir del submenú y volver a entrar conservando las
+conexiones fue propuesta, pero todavía no se ha reportado su resultado.
+
 ## Estructura de módulos
 
 ```text
-main.py              Selección de servidor, autenticación y menú de archivos.
+main.py              Menú principal, autenticación, archivos y menú de red.
 servidor.py          Árbol y tabla de usuarios locales de cada servidor.
 nodo_archivo.py      Nodos, búsqueda, visualización y eliminación recursiva.
 tabla_hash.py        Función hash, encadenamiento, registro y autenticación.
@@ -120,7 +140,8 @@ carpetas vacías.
 Esta bitácora se elaboró a partir del código y del historial Git local disponible
 el 2 de octubre de 2026, junto con la conversación de desarrollo de Ismael.
 Las responsabilidades confirmadas son: Alannah desarrolló la base de archivos,
-servidores, autenticación y menús; Ismael trabajó la red y su diagnóstico.
+servidores, autenticación y menús iniciales; Ismael trabajó la red, su diagnóstico
+y la conexión del menú de red con el menú principal.
 Los responsables de enrutamiento y auditoría/integración quedan por confirmar
 en esta documentación.
 
@@ -170,6 +191,12 @@ con latencias positivas. Permite agregar y eliminar enlaces y diagnosticar la re
 mediante BFS. Devuelve los nombres visitados, los no alcanzables, los aislados y
 un booleano que indica si toda la red es alcanzable desde el origen.
 
+La integración actual en `main.py` agrega `menu_red(red)` con `match/case` y la
+opción «Administrar red» en el menú principal. El submenú solicita nombres,
+convierte la latencia con `float()`, captura `ValueError` y presenta el resultado
+del diagnóstico. Este avance se documenta a partir del código local y de las
+capturas compartidas, sin asignarle un commit no verificado.
+
 La IA propuso fragmentos de implementación, explicaciones y pruebas. Ismael los
 incorporó manualmente, solicitó utilizar `ValueError` para duplicados, consultó
 el uso de mensajes de retorno y corrigió la indentación y los imports durante
@@ -194,6 +221,9 @@ de una captura o del paso anterior, la columna de función aporta el contexto.
 | Eliminación de conexiones | `listo` / `todo bien` | Tras incorporar el método y sus pruebas, se reportó que funcionaron; se comprueban ambos extremos y la conservación de otros enlaces. |
 | Diagnóstico BFS | `ya hice el diagnostacar red` / `sip` | Se incorporó el diagnóstico y se confirmó el resultado de las pruebas de aislamiento, conectividad, componentes separados y ciclos. |
 | Organización de menús | `tu me recomiendas meter todos los menus en un archivo o un archivo por menu y una carpeta de menus?` | Se propuso separar por área funcional; la carpeta local existe, pero la migración está pendiente. |
+| Integración con main | `lo que vamos a hacer es hacer todo y depues sepepararlo a carpetas, podrias mostrarme no cambiando codigo internamente que haria yo para conectarlo a la funcionalidad del main` (espaciado normalizado) | Se incorporó manualmente el menú en `main.py`, creando la red una sola vez con los servidores existentes. La separación en carpetas se dejó para después. |
+| Menú con match/case | `podrias hacer el menu de red con switch, quiero ver como se implementa en python` | Se adaptó el menú a `match/case`; se explicó que los casos no necesitan `break` y que el de la opción 0 termina el `while`. |
+| Prueba del menú | `y para provarlo` | Las capturas posteriores muestran creación de dos conexiones, diagnóstico de red conectada y diagnóstico con Servidor 3 aislado tras eliminar un enlace. |
 | Cachés de Python | `Me podrias decir como ignorar los cahes` | Se agregó `.gitignore` y se verificó con `git status --ignored` que `__pycache__` quedara ignorado. |
 | Documentación | `quiero que cambies el readme nuevo usando siempre este tipo obviamente con los datos nuevos` | Se solicitó adaptar el formato del proyecto anterior al código, prompts e historial verificables del proyecto actual. |
 
@@ -208,9 +238,11 @@ destinos no alcanzables. Aún no hay un archivo de enrutamiento en la copia revi
 ### Módulo Auditoría y Menús - Responsable por confirmar
 
 Pendiente de implementación: registro con fecha y hora en `network_audit_log.txt`,
-consulta del registro e integración de las operaciones de red en los menús.
-El menú deberá capturar los `ValueError` y utilizar una instancia compartida de
-la red. Cada integrante deberá completar sus propios prompts y validaciones.
+consulta del registro e integración del enrutamiento y de los eventos de auditoría.
+El menú de conexiones y diagnóstico ya está integrado por Ismael en `main.py`,
+captura `ValueError` y utiliza una instancia compartida de la red. La separación
+en carpetas se realizará posteriormente. Cada integrante deberá completar sus
+propios prompts y validaciones.
 
 ### Historial de integraciones observable
 
