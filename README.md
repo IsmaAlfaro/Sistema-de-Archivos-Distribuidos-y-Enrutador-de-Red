@@ -232,11 +232,27 @@ de una captura o del paso anterior, la columna de función aporta el contexto.
 
 </details>
 
-### Módulo Enrutamiento - Responsable por confirmar
+### Módulo Enrutamiento - Carlos Víquez
 
-Pendiente de implementación: Dijkstra, reconstrucción de la ruta, costo total y
-simulación del envío. Deberá consultar las adyacencias de `GrafoRed` y manejar
-destinos no alcanzables. Aún no hay un archivo de enrutamiento en la copia revisada.
+Estado actual: `enrutamiento.py` calcula la ruta de menor latencia con Dijkstra
+implementado manualmente sobre las listas `servidores` y `adyacencias` de
+`GrafoRed`, sin modificar ese módulo. Funciones: `buscar_minimo_no_visitado`,
+`dijkstra`, `reconstruir_ruta`, `calcular_ruta` y `simular_envio_paquete`.
+Maneja origen o destino inexistentes (`ValueError`), origen igual al destino
+y destino sin ruta. El menú de red tiene la opción 4 para simular el envío.
+
+Pruebas: `python -m tests.prueba_enrutamiento` (ruta directa, varios saltos,
+elección de menor latencia, sin ruta, origen = destino, servidor inexistente,
+red vacía y latencias decimales).
+
+Complejidad: Dijkstra con búsqueda lineal del mínimo es O(V²) en tiempo y O(V)
+en memoria auxiliar.
+
+Validación manual:
+| Acción desde el menú | Resultado observado |
+| Conectar Servidor 1 con Servidor 2 (10 ms), Servidor 2 con Servidor 3 (15 ms) y Servidor 1 con Servidor 3 (30 ms). | Mensajes de conexión agregada. |
+| Simular envío de Servidor 1 a Servidor 3. | Eligió el desvío, no la conexión directa de 30 ms: `Servidor 1 -> Servidor 2 -> Servidor 3`, con latencia total de `25.0 ms`. |
+| Diagnosticar la red desde Servidor 1 tras eliminar enlaces. | Recorrido `Servidor 1 -> Servidor 2`, red no conectada y Servidor 3 aislado y no alcanzable. El diagnóstico BFS siguió funcionando con normalidad. |
 
 ### Módulo Auditoría y Menús - Responsable por confirmar
 

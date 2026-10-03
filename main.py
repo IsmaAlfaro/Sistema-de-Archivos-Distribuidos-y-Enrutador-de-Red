@@ -1,5 +1,6 @@
 from servidor import Servidor
 from grafo_red import GrafoRed
+from enrutamiento import simular_envio_paquete
 
 def menu_archivos(servidor):
     while True:
@@ -152,6 +153,7 @@ def menu_red(red):
         print("\n1. Agregar conexión")
         print("2. Eliminar conexión")
         print("3. Diagnosticar red")
+        print("4. Simular envío de paquete")
         print("0. Volver")
         print("==================================================")
 
@@ -216,6 +218,15 @@ def menu_red(red):
                     else:
                         print("Ninguno.")
 
+                except ValueError as error:
+                    print(error)
+
+            case "4":
+                origen = input("Nombre del servidor de origen: ").strip()
+                destino = input("Nombre del servidor de destino: ").strip()
+
+                try:
+                    simular_envio_paquete(red, origen, destino)
                 except ValueError as error:
                     print(error)
 
