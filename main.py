@@ -1,6 +1,5 @@
 from servidor import Servidor
-from grafo import GrafoRed
-
+from grafo_red import GrafoRed
 
 def menu_archivos(servidor):
     while True:
@@ -140,66 +139,92 @@ def seleccionar_servidor(servidores):
 
         print("Opción inválida.")
 
-
-def menu_red(grafo):
+def menu_red(red):
     while True:
         print("\n==================================================")
-        print("                  RED DE SERVIDORES")
+        print("              ADMINISTRACIÓN DE RED")
         print("==================================================")
-        print("1. Agregar conexión")
+
+        print("Servidores disponibles:")
+        for servidor in red.servidores:
+            print("-", servidor.nombre)
+
+        print("\n1. Agregar conexión")
         print("2. Eliminar conexión")
-        print("3. Mostrar red")
+        print("3. Diagnosticar red")
         print("0. Volver")
         print("==================================================")
 
-        opcion = input("Seleccione una opción: ")
+        opcion = input("Seleccione una opción: ").strip()
 
-        if opcion == "1":
-            servidor1 = input("Servidor de origen: ")
-            servidor2 = input("Servidor de destino: ")
+        match opcion:
+            case "1":
+                origen = input("Nombre del servidor de origen: ").strip()
+                destino = input("Nombre del servidor de destino: ").strip()
 
-            try:
-                latencia = int(input("Latencia en milisegundos: "))
-            except ValueError:
-                print("La latencia debe ser un número.")
-                continue
+                try:
+                    latencia = float(input("Latencia en milisegundos: "))
+                except ValueError:
+                    print("La latencia debe ser un número.")
+                    continue
 
-            resultado = grafo.agregar_conexion(
-                servidor1,
-                servidor2,
-                latencia
-            )
+                try:
+                    mensaje = red.agregar_conexion(
+                        origen, destino, latencia
+                    )
+                    print(mensaje)
+                except ValueError as error:
+                    print(error)
 
-            if resultado:
-                print("Conexión agregada correctamente.")
-            else:
-                print("No se pudo agregar la conexión.")
+            case "2":
+                origen = input("Nombre del servidor de origen: ").strip()
+                destino = input("Nombre del servidor de destino: ").strip()
 
-        elif opcion == "2":
-            servidor1 = input("Primer servidor: ")
-            servidor2 = input("Segundo servidor: ")
+                try:
+                    mensaje = red.eliminar_conexion(origen, destino)
+                    print(mensaje)
+                except ValueError as error:
+                    print(error)
 
-            resultado = grafo.eliminar_conexion(
-                servidor1,
-                servidor2
-            )
+            case "3":
+                origen = input(
+                    "Nombre del servidor desde donde iniciar: "
+                ).strip()
 
-            if resultado:
-                print("Conexión eliminada correctamente.")
-            else:
-                print("No se pudo eliminar la conexión.")
+                try:
+                    resultado = red.diagnosticar_red(origen)
 
-        elif opcion == "3":
-            print("\nRed actual:")
-            grafo.mostrar_red()
+                    print("\nOrden de visita BFS:")
+                    print(" -> ".join(resultado["recorrido"]))
 
-        elif opcion == "0":
-            break
+                    if resultado["red_conectada"]:
+                        print("Todos los servidores están comunicados.")
+                    else:
+                        print("La red no está completamente conectada.")
 
-        else:
-            print("Opción inválida.")
+                    print("\nServidores no alcanzables desde el origen:")
+                    if resultado["no_alcanzables"]:
+                        for nombre in resultado["no_alcanzables"]:
+                            print("-", nombre)
+                    else:
+                        print("Ninguno.")
 
+                    print("\nServidores aislados, sin conexiones:")
+                    if resultado["aislados"]:
+                        for nombre in resultado["aislados"]:
+                            print("-", nombre)
+                    else:
+                        print("Ninguno.")
 
+                except ValueError as error:
+                    print(error)
+
+            case "0":
+                print("Volviendo al menú principal...")
+                break
+
+            case _:
+                print("Opción inválida.")
 def main():
     servidores = [
         Servidor("Servidor 1"),
@@ -207,14 +232,14 @@ def main():
         Servidor("Servidor 3")
     ]
 
-    grafo = GrafoRed()
+    red = GrafoRed()
 
     for servidor in servidores:
-        grafo.agregar_servidor(servidor)
+        red.agregar_servidor(servidor)
 
     while True:
         print("\n==================================================")
-        print("                   NETWORK OS")
+        print("               NETWORK OS")
         print("==================================================")
         print("1. Acceder a un servidor")
         print("2. Administrar red")
@@ -230,7 +255,7 @@ def main():
                 menu_autenticacion(servidor)
 
         elif opcion == "2":
-            menu_red(grafo)
+            menu_red(red)
 
         elif opcion == "0":
             print("Saliendo del sistema...")
