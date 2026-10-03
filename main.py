@@ -1,5 +1,5 @@
 from servidor import Servidor
-
+from grafo_red import GrafoRed
 
 def menu_archivos(servidor):
     while True:
@@ -139,7 +139,92 @@ def seleccionar_servidor(servidores):
 
         print("Opción inválida.")
 
+def menu_red(red):
+    while True:
+        print("\n==================================================")
+        print("              ADMINISTRACIÓN DE RED")
+        print("==================================================")
 
+        print("Servidores disponibles:")
+        for servidor in red.servidores:
+            print("-", servidor.nombre)
+
+        print("\n1. Agregar conexión")
+        print("2. Eliminar conexión")
+        print("3. Diagnosticar red")
+        print("0. Volver")
+        print("==================================================")
+
+        opcion = input("Seleccione una opción: ").strip()
+
+        match opcion:
+            case "1":
+                origen = input("Nombre del servidor de origen: ").strip()
+                destino = input("Nombre del servidor de destino: ").strip()
+
+                try:
+                    latencia = float(input("Latencia en milisegundos: "))
+                except ValueError:
+                    print("La latencia debe ser un número.")
+                    continue
+
+                try:
+                    mensaje = red.agregar_conexion(
+                        origen, destino, latencia
+                    )
+                    print(mensaje)
+                except ValueError as error:
+                    print(error)
+
+            case "2":
+                origen = input("Nombre del servidor de origen: ").strip()
+                destino = input("Nombre del servidor de destino: ").strip()
+
+                try:
+                    mensaje = red.eliminar_conexion(origen, destino)
+                    print(mensaje)
+                except ValueError as error:
+                    print(error)
+
+            case "3":
+                origen = input(
+                    "Nombre del servidor desde donde iniciar: "
+                ).strip()
+
+                try:
+                    resultado = red.diagnosticar_red(origen)
+
+                    print("\nOrden de visita BFS:")
+                    print(" -> ".join(resultado["recorrido"]))
+
+                    if resultado["red_conectada"]:
+                        print("Todos los servidores están comunicados.")
+                    else:
+                        print("La red no está completamente conectada.")
+
+                    print("\nServidores no alcanzables desde el origen:")
+                    if resultado["no_alcanzables"]:
+                        for nombre in resultado["no_alcanzables"]:
+                            print("-", nombre)
+                    else:
+                        print("Ninguno.")
+
+                    print("\nServidores aislados, sin conexiones:")
+                    if resultado["aislados"]:
+                        for nombre in resultado["aislados"]:
+                            print("-", nombre)
+                    else:
+                        print("Ninguno.")
+
+                except ValueError as error:
+                    print(error)
+
+            case "0":
+                print("Volviendo al menú principal...")
+                break
+
+            case _:
+                print("Opción inválida.")
 def main():
     servidores = [
         Servidor("Servidor 1"),
@@ -147,14 +232,37 @@ def main():
         Servidor("Servidor 3")
     ]
 
-    while True:
-        servidor = seleccionar_servidor(servidores)
+    red = GrafoRed()
 
-        if servidor is None:
+    for servidor in servidores:
+        red.agregar_servidor(servidor)
+
+    while True:
+        print("\n==================================================")
+        print("               NETWORK OS")
+        print("==================================================")
+        print("1. Acceder a un servidor")
+        print("2. Administrar red")
+        print("0. Salir")
+        print("==================================================")
+
+        opcion = input("Seleccione una opción: ")
+
+        if opcion == "1":
+            servidor = seleccionar_servidor(servidores)
+
+            if servidor is not None:
+                menu_autenticacion(servidor)
+
+        elif opcion == "2":
+            menu_red(red)
+
+        elif opcion == "0":
             print("Saliendo del sistema...")
             break
 
-        menu_autenticacion(servidor)
+        else:
+            print("Opción inválida.")
 
 
 if __name__ == "__main__":
