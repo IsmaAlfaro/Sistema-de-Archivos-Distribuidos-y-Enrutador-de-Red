@@ -138,7 +138,7 @@ carpetas vacías.
 ## Bitácora de desarrollo
 
 Esta bitácora se elaboró a partir del código y del historial Git local disponible
-el 2 de octubre de 2026, junto con la conversación de desarrollo de Ismael.
+el 3 de octubre de 2026, junto con la conversación de desarrollo de Ismael.
 Las responsabilidades confirmadas son: Alannah desarrolló la base de archivos,
 servidores, autenticación y menús iniciales; Ismael trabajó la red, su diagnóstico
 y la conexión del menú de red con el menú principal.
@@ -185,6 +185,9 @@ reportadas. Se mantiene la numeración original, que no incluía un prompt 9.
 |---|---|---|
 | 2026-09-25 | `b32f689` | Incorporación de `.gitignore` para los cachés de Python. |
 | 2026-10-02 | `f43be98` | Incorporación de `grafo_red.py`, paquete `tests` y pruebas de red. |
+| 2026-10-02 | `cab1d01` | Organización del README con funcionalidades, bitácora, prompts y complejidades. |
+| 2026-10-03 | `4290ba8` | Integración de `menu_red` con `match/case` en `main.py` y acceso desde el menú principal. |
+| 2026-10-03 | `2fd3211` | Actualización del README con la integración del menú de red y las comprobaciones manuales. |
 
 Estado actual: `GrafoRed` registra servidores y almacena conexiones bidireccionales
 con latencias positivas. Permite agregar y eliminar enlaces y diagnosticar la red
@@ -194,8 +197,8 @@ un booleano que indica si toda la red es alcanzable desde el origen.
 La integración actual en `main.py` agrega `menu_red(red)` con `match/case` y la
 opción «Administrar red» en el menú principal. El submenú solicita nombres,
 convierte la latencia con `float()`, captura `ValueError` y presenta el resultado
-del diagnóstico. Este avance se documenta a partir del código local y de las
-capturas compartidas, sin asignarle un commit no verificado.
+del diagnóstico. Este avance está registrado en el commit `4290ba8` y se
+complementa con las capturas de las pruebas manuales compartidas por Ismael.
 
 La IA propuso fragmentos de implementación, explicaciones y pruebas. Ismael los
 incorporó manualmente, solicitó utilizar `ValueError` para duplicados, consultó
@@ -268,6 +271,9 @@ registro de todas las operaciones de fetch, push o sincronización remota.
 | 2026-09-24 | `c778a84` | Ismael Alfaro Benavides | Merge pull request #3. |
 | 2026-09-25 | `b32f689` | IsmaAlfaro | Ignorar archivos de caché de Python. |
 | 2026-10-02 | `f43be98` | IsmaAlfaro | creacion del grafo red, la carpeta de pruebas (Test). |
+| 2026-10-02 | `cab1d01` | IsmaAlfaro | readme limpio |
+| 2026-10-03 | `4290ba8` | IsmaAlfaro | integracion de menu red a el menu en main |
+| 2026-10-03 | `2fd3211` | IsmaAlfaro | Actualizar README con integracion del menu de red |
 
 ## Complejidad de las estructuras y algoritmos actuales
 
