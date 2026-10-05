@@ -1,4 +1,7 @@
-class GrafoRed: 
+from auditoria import registrar_evento
+
+
+class GrafoRed:
 
     def __init__(self):
 
@@ -12,6 +15,12 @@ class GrafoRed:
 
         self.servidores.append(servidor)
         self.adyacencias.append([])
+
+        registrar_evento(
+            "grafo_red",
+            f"servidor {servidor.nombre} agregado a la red"
+        )
+
         return f"Servidor {servidor.nombre} agregado a la red."
 
     def agregar_conexion(self, nombre_origen, nombre_destino,latencia):
@@ -33,9 +42,16 @@ class GrafoRed:
 
       self.adyacencias[origen].append((destino, latencia))
       self.adyacencias[destino].append((origen, latencia))
-      
+
+      registrar_evento(
+          "grafo_red",
+          f"conexión agregada entre {nombre_origen} y {nombre_destino} "
+          f"con latencia {latencia} ms"
+      )
+
       return f"Conexión agregada entre {nombre_origen} y {nombre_destino} con latencia {latencia}."
-      
+
+
     def buscar_indice(self, nombre):
         for indice in range (len(self.servidores)):
             if self.servidores[indice].nombre == nombre:
@@ -61,6 +77,11 @@ class GrafoRed:
             if conexion[0] == origen:
                 self.adyacencias[destino].remove(conexion)
                 break
+
+        registrar_evento(
+            "grafo_red",
+            f"conexión eliminada entre {nombre_origen} y {nombre_destino}"
+        )
 
         return f"Conexión eliminada entre {nombre_origen} y {nombre_destino}."
 
@@ -104,3 +125,4 @@ class GrafoRed:
             "aislados": aislados,
             "red_conectada": len(no_alcanzables) == 0
         }
+        
