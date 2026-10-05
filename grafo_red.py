@@ -13,14 +13,13 @@ class GrafoRed:
             if existente.nombre == servidor.nombre:
                 raise ValueError(f"El servidor {servidor.nombre} ya existe en la red.")
 
-        self.servidores.append(servidor)
-        self.adyacencias.append([])
-
         registrar_evento(
             "grafo_red",
             f"servidor {servidor.nombre} agregado a la red"
         )
 
+        self.servidores.append(servidor)
+        self.adyacencias.append([])
         return f"Servidor {servidor.nombre} agregado a la red."
 
     def agregar_conexion(self, nombre_origen, nombre_destino,latencia):
@@ -40,14 +39,14 @@ class GrafoRed:
             if vecino == destino:
                 raise ValueError("La conexión ya existe.")
 
-      self.adyacencias[origen].append((destino, latencia))
-      self.adyacencias[destino].append((origen, latencia))
-
       registrar_evento(
           "grafo_red",
           f"conexión agregada entre {nombre_origen} y {nombre_destino} "
           f"con latencia {latencia} ms"
       )
+
+      self.adyacencias[origen].append((destino, latencia))
+      self.adyacencias[destino].append((origen, latencia))
 
       return f"Conexión agregada entre {nombre_origen} y {nombre_destino} con latencia {latencia}."
 
@@ -65,23 +64,28 @@ class GrafoRed:
         if origen is None or destino is None:
             raise ValueError("Uno o ambos servidores no existen en la red.")
 
+        conexion_encontrada = None
+
         for conexion in self.adyacencias[origen]:
             if conexion[0] == destino:
-                self.adyacencias[origen].remove(conexion)
+                conexion_encontrada = conexion
                 break
 
-        else:
+        if conexion_encontrada is None:
             raise ValueError("La conexión no existe.")
+
+        registrar_evento(
+            "grafo_red",
+            f"conexión eliminada entre {nombre_origen} y {nombre_destino} "
+            f"con latencia {conexion_encontrada[1]} ms"
+        )
+
+        self.adyacencias[origen].remove(conexion_encontrada)
 
         for conexion in self.adyacencias[destino]:
             if conexion[0] == origen:
                 self.adyacencias[destino].remove(conexion)
                 break
-
-        registrar_evento(
-            "grafo_red",
-            f"conexión eliminada entre {nombre_origen} y {nombre_destino}"
-        )
 
         return f"Conexión eliminada entre {nombre_origen} y {nombre_destino}."
 
