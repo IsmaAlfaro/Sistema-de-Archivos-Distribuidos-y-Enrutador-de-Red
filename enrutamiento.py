@@ -221,3 +221,4 @@ def simular_envio_paquete(red, nombre_origen, nombre_destino):
     print(f"Latencia total: {resultado['latencia_total']} ms")
 
     return resultado
+    
