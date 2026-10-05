@@ -56,4 +56,40 @@ def registrar_evento(origen, accion):
 
 
 def leer_registro():
-    ...
+    if not _ruta_archivo.exists():                        #se revisa si existe el archivo, de lo contrario se tira error.
+        raise FileNotFoundError(
+            "Error! Archivo no encontrado o inexistente."
+        )
+
+    try:
+        archivo = _ruta_archivo.open("r", encoding="utf-8")            #Se intenta abrir el archivo. Si falla, tira error.
+    except OSError as error:
+        raise OSError(
+            "Error! El archivo no se pudo abrir con exito."
+        ) from error
+
+    with archivo:
+        lineasTemp = archivo.readlines()                #Se empieza el proceso de leectura.
+
+        if not any(lineaTemp.strip() for lineaTemp in lineasTemp):    #Se revisa si hay siquiera texto. Si el archivo esta vacio, retorna notificacion.
+            print("Registro Vacío! No hay datos registrados.")
+            return False
+
+        for lineaTemp in lineasTemp:            #Loop de lectura de datos
+            if not lineaTemp.strip():
+                continue
+
+            datosTemp = lineaTemp.rstrip("\r\n").split("~")
+
+            origenTemp = datosTemp[0]
+            accionTemp = datosTemp[1]
+            fechaHoraTemp = datosTemp[2]
+
+            print("==============================")            #Formato de display de datos.
+            print(f"Origen: {origenTemp}")
+            print(f"Acción: {accionTemp}")
+            print(f"Fecha y hora: {fechaHoraTemp}")
+            print("==============================")
+            print()
+
+    return True
