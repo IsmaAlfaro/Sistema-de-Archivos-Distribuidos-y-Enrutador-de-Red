@@ -2,21 +2,38 @@ from datetime import datetime
 from pathlib import Path
 
 
+_RUTA_ARCHIVO_PREDETERMINADA = Path(__file__).resolve().with_name(
+    "network_audit_log.txt"
+)
+_ruta_archivo = _RUTA_ARCHIVO_PREDETERMINADA
+_auditoria_activa = False                        #False == auditoria desactivada para pruevas unitarias. True == auditoria activada para uso regular del sistema.
+
+
+def configurar_auditoria(activa, ruta_archivo=None):        #Configuracion de la auditoria para ambiente de pruevas
+    global _auditoria_activa, _ruta_archivo
+
+    _auditoria_activa = activa
+
+    if ruta_archivo is None:
+        _ruta_archivo = _RUTA_ARCHIVO_PREDETERMINADA
+    else:
+        _ruta_archivo = Path(ruta_archivo)
+
+
 def registrar_evento(origen, accion):
-    ruta_archivo = Path(__file__).resolve().with_name( #se asiga la ruta y nombre del archivo
-        "network_audit_log.txt"
-    )
+    if not _auditoria_activa:
+        return False
 
     try:                                            #se revisa si existe el archivo, de lo contrario se crea.
-        if not ruta_archivo.exists():
-            ruta_archivo.touch()
+        if not _ruta_archivo.exists():
+            _ruta_archivo.touch()
     except OSError as error:
         raise OSError(
             "Error! El archivo no se pudo abrir con exito."
         ) from error
 
     try:                                            #se intenta abrir el archivo y en caso de que falle, se tira un error.
-        archivo = ruta_archivo.open("a+", encoding="utf-8")
+        archivo = _ruta_archivo.open("a+", encoding="utf-8")
     except OSError as error:
         raise OSError(
             "Error! El archivo no se pudo abrir con exito."
@@ -25,9 +42,10 @@ def registrar_evento(origen, accion):
     fecha_hora = datetime.now().strftime("%d:%m:%Y %H:%M:%S")      #Se obtiene la fecha y hora de la accion
     registro = f"{origen}~{accion}~{fecha_hora}~\n"                #Se formatea el registro de la accion hecha usando '~' como separador
 
-    with archivo:                  #Se busca la linea vacia mas cercana disponible
+    with archivo:                  #Se busca la linea vacia mas cercana disponible; se escribe al final del archivo.
         archivo.seek(0)
         contenido = archivo.read()
+        archivo.seek(0, 2)
 
         if contenido and not contenido.endswith("\n"):
             archivo.write("\n")
@@ -35,7 +53,7 @@ def registrar_evento(origen, accion):
         archivo.write(registro)          #Se escribe en el archivo el registro.
 
     return True
-    
+
+
 def leer_registro():
-  ...
-    
+    ...
