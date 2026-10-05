@@ -1,5 +1,7 @@
 from nodo_archivo import NodoArchivo
 from tabla_hash import TablaHash
+from auditoria import registrar_evento
+
 
 class Servidor:
 
@@ -7,7 +9,7 @@ class Servidor:
         self.nombre = nombre
         self.raiz = NodoArchivo("/", True)
         self.usuarios = TablaHash()
-        
+
     def crear_nodo(self, nombre, es_carpeta, carpeta_padre="/"):
         padre = self.buscar_por_ruta(carpeta_padre)
 
@@ -20,12 +22,27 @@ class Servidor:
         nuevo_nodo = NodoArchivo(nombre, es_carpeta)
         padre.agregar_hijo(nuevo_nodo)
 
+        if carpeta_padre == "/":
+            ruta_nodo = f"/{nombre}"
+        else:
+            ruta_nodo = f"{carpeta_padre.rstrip('/')}/{nombre}"
+
+        if es_carpeta:
+            tipo_nodo = "carpeta"
+        else:
+            tipo_nodo = "archivo"
+
+        registrar_evento(
+            "servidor",
+            f"creación de {tipo_nodo} '{ruta_nodo}' en {self.nombre}"
+        )
+
         return True
-    
-              
+
+
     def buscar_nodo(self, nombre):
          return self.raiz.buscar(nombre)
-     
+
     def buscar_por_ruta(self, ruta):
         if ruta == "/":
             return self.raiz
@@ -40,8 +57,8 @@ class Servidor:
                 return None
 
         return nodo_actual
-            
-        
+
+
     def eliminar_nodo(self, ruta):
         if ruta == "/":
             return False
@@ -56,9 +73,16 @@ class Servidor:
         if padre is None:
             return False
 
-        return padre.eliminar(nombre)
-     
+        resultado = padre.eliminar(nombre)
+
+        if resultado:
+            registrar_evento(
+                "servidor",
+                f"eliminación de nodo '{ruta}' en {self.nombre}"
+            )
+
+        return resultado
+
     def mostrar_estructura(self):
          self.raiz.mostrar_arbol()
-         
-    
+        
