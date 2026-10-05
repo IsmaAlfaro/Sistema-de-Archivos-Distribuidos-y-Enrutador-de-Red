@@ -19,9 +19,6 @@ class Servidor:
         if padre.buscar_hijo(nombre) is not None:
             return False
 
-        nuevo_nodo = NodoArchivo(nombre, es_carpeta)
-        padre.agregar_hijo(nuevo_nodo)
-
         if carpeta_padre == "/":
             ruta_nodo = f"/{nombre}"
         else:
@@ -36,6 +33,9 @@ class Servidor:
             "servidor",
             f"creación de {tipo_nodo} '{ruta_nodo}' en {self.nombre}"
         )
+
+        nuevo_nodo = NodoArchivo(nombre, es_carpeta)
+        padre.agregar_hijo(nuevo_nodo)
 
         return True
 
@@ -73,15 +73,23 @@ class Servidor:
         if padre is None:
             return False
 
-        resultado = padre.eliminar(nombre)
+        nodo_encontrado = None
 
-        if resultado:
-            registrar_evento(
-                "servidor",
-                f"eliminación de nodo '{ruta}' en {self.nombre}"
-            )
+        for hijo in padre.hijos:
+            nodo_encontrado = hijo.buscar(nombre)
 
-        return resultado
+            if nodo_encontrado is not None:
+                break
+
+        if nodo_encontrado is None:
+            return False
+
+        registrar_evento(
+            "servidor",
+            f"eliminación de nodo '{ruta}' en {self.nombre}"
+        )
+
+        return padre.eliminar(nombre)
 
     def mostrar_estructura(self):
          self.raiz.mostrar_arbol()
