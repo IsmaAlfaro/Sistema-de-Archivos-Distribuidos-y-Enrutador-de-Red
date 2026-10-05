@@ -8,6 +8,9 @@
 #   - Dijkstra trabaja con ÍNDICES. Los nombres solo se usan al recibir
 #     datos del usuario y al mostrar resultados.
 
+from auditoria import registrar_evento
+
+
 # Representa "todavía no se conoce ningún camino hasta este servidor".
 # Es mayor que cualquier número, así que cualquier latencia real lo mejora.
 INFINITO = float("inf")
@@ -126,23 +129,39 @@ def calcular_ruta(red, nombre_origen, nombre_destino):
 
     # Caso especial: no hace falta viajar.
     if indice_origen == indice_destino:
-        return {
+        resultado = {
             "hay_ruta": True,
             "ruta": [nombre_origen],
             "latencias_por_salto": [],
             "latencia_total": 0
         }
 
+        registrar_evento(
+            "enrutamiento",
+            f"cálculo de ruta de {nombre_origen} a {nombre_destino}: "
+            f"{nombre_origen}, latencia total 0 ms"
+        )
+
+        return resultado
+
     distancias, predecesores = dijkstra(red, indice_origen)
 
     # Si la distancia sigue en INFINITO, ningún camino llegó al destino.
     if distancias[indice_destino] == INFINITO:
-        return {
+        resultado = {
             "hay_ruta": False,
             "ruta": [],
             "latencias_por_salto": [],
             "latencia_total": None
         }
+
+        registrar_evento(
+            "enrutamiento",
+            f"cálculo de ruta de {nombre_origen} a {nombre_destino}: "
+            "no hay ruta disponible"
+        )
+
+        return resultado
 
     indices_ruta = reconstruir_ruta(predecesores, indice_destino)
 
@@ -156,12 +175,21 @@ def calcular_ruta(red, nombre_origen, nombre_destino):
         siguiente = indices_ruta[posicion]
         latencias_por_salto.append(buscar_latencia(red, anterior, siguiente))
 
-    return {
+    resultado = {
         "hay_ruta": True,
         "ruta": nombres,
         "latencias_por_salto": latencias_por_salto,
         "latencia_total": distancias[indice_destino]
     }
+
+    registrar_evento(
+        "enrutamiento",
+        f"cálculo de ruta de {nombre_origen} a {nombre_destino}: "
+        f"{' -> '.join(nombres)}, latencia total "
+        f"{distancias[indice_destino]} ms"
+    )
+
+    return resultado
 
 
 def simular_envio_paquete(red, nombre_origen, nombre_destino):
