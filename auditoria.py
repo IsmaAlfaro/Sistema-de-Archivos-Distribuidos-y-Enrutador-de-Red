@@ -85,11 +85,8 @@ def leer_registro():
             accionTemp = datosTemp[1]
             fechaHoraTemp = datosTemp[2]
 
-            print("==============================")            #Formato de display de datos.
-            print(f"Origen: {origenTemp}")
-            print(f"Acción: {accionTemp}")
-            print(f"Fecha y hora: {fechaHoraTemp}")
-            print("==============================")
-            print()
-
+            print("==============================\n"            #Formato de display de datos.
+                  f"Origen: {origenTemp}, Acción: {accionTemp}, Fecha y hora: {fechaHoraTemp}\n"
+                  "==============================", end="\n")
+            
     return True
