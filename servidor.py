@@ -8,7 +8,7 @@ class Servidor:
     def __init__(self, nombre):  # Constructor
         self.nombre = nombre
         self.raiz = NodoArchivo("/", True)
-        self.usuarios = TablaHash()
+        self.usuarios = TablaHash(nombre_servidor=nombre)
 
     def crear_nodo(self, nombre, es_carpeta, carpeta_padre="/"):
         padre = self.buscar_por_ruta(carpeta_padre)
