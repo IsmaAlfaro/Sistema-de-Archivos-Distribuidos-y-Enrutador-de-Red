@@ -1,12 +1,44 @@
+import os
+from datetime import datetime as fechaHora
+
 from servidor import Servidor
 from grafo_red import GrafoRed
-from enrutamiento import simular_envio_paquete
+from enrutamiento import simular_envio_paquete as simularEnvioPaquete
+import auditoria as moduloAuditoria
 
-def menu_archivos(servidor):
+
+lin = "------------------------------------------"
+
+
+def limpiarConsola():
+    os.system("cls")
+
+
+def pausarConsola():
+    input("\nPresione Enter para continuar...")
+
+
+def ingresarFecha():
     while True:
-        print("\n==================================================")
+        fecha = input("Ingrese la fecha (dd:mm:aaaa): ").strip()
+
+        try:
+            fechaTemp = fechaHora.strptime(fecha, "%d:%m:%Y")
+
+            if fechaTemp.strftime("%d:%m:%Y") == fecha:
+                return fecha
+        except ValueError:
+            pass
+
+        print("Fecha inválida. Use el formato dd:mm:aaaa.")
+
+
+def menuArchivos(servidor):
+    while True:
+        limpiarConsola()
+        print(lin)
         print("              SISTEMA DE ARCHIVOS")
-        print("==================================================")
+        print(lin)
         print("Servidor:", servidor.nombre)
         print("1. Crear carpeta")
         print("2. Crear archivo")
@@ -14,9 +46,9 @@ def menu_archivos(servidor):
         print("4. Mostrar estructura")
         print("5. Eliminar archivo o carpeta")
         print("0. Cerrar sesión")
-        print("==================================================")
+        print(lin)
 
-        opcion = input("Seleccione una opción: ")
+        opcion = input("Seleccione una opción: ").strip()
 
         if opcion == "1":
             nombre = input("Nombre de la carpeta: ")
@@ -29,6 +61,8 @@ def menu_archivos(servidor):
             else:
                 print("No se pudo crear la carpeta.")
 
+            pausarConsola()
+
         elif opcion == "2":
             nombre = input("Nombre del archivo: ")
             ruta = input("Ruta donde desea crearlo: ")
@@ -40,8 +74,12 @@ def menu_archivos(servidor):
             else:
                 print("No se pudo crear el archivo.")
 
+            pausarConsola()
+
         elif opcion == "3":
-            nombre = input("Nombre del archivo o carpeta que desea buscar: ")
+            nombre = input(
+                "Nombre del archivo o carpeta que desea buscar: "
+            )
 
             resultado = servidor.buscar_nodo(nombre)
 
@@ -50,9 +88,12 @@ def menu_archivos(servidor):
             else:
                 print("Archivo o carpeta no encontrado.")
 
+            pausarConsola()
+
         elif opcion == "4":
             print("\nEstructura del servidor:")
             servidor.mostrar_estructura()
+            pausarConsola()
 
         elif opcion == "5":
             ruta = input("Ruta del archivo o carpeta que desea eliminar: ")
@@ -64,26 +105,30 @@ def menu_archivos(servidor):
             else:
                 print("No se pudo eliminar el archivo o carpeta.")
 
+            pausarConsola()
+
         elif opcion == "0":
             print("Sesión cerrada.")
             break
 
         else:
             print("Opción inválida.")
+            pausarConsola()
 
 
-def menu_autenticacion(servidor):
+def menuAutenticacion(servidor):
     while True:
-        print("\n==================================================")
+        limpiarConsola()
+        print(lin)
         print("           NETWORK OS - AUTENTICACIÓN")
-        print("==================================================")
+        print(lin)
         print("Servidor seleccionado:", servidor.nombre)
         print("1. Iniciar Sesión")
         print("2. Registrar Nuevo Usuario")
         print("3. Volver")
-        print("==================================================")
+        print(lin)
 
-        opcion = input("Seleccione una opción: ")
+        opcion = input("Seleccione una opción: ").strip()
 
         if opcion == "1":
             usuario = input("Usuario: ")
@@ -91,9 +136,11 @@ def menu_autenticacion(servidor):
 
             if servidor.usuarios.autenticar(usuario, contraseña):
                 print("Inicio de sesión correcto.")
-                menu_archivos(servidor)
+                pausarConsola()
+                menuArchivos(servidor)
             else:
                 print("Usuario o contraseña incorrectos.")
+                pausarConsola()
 
         elif opcion == "2":
             usuario = input("Nuevo usuario: ")
@@ -108,26 +155,30 @@ def menu_autenticacion(servidor):
             else:
                 print("El usuario ya existe.")
 
+            pausarConsola()
+
         elif opcion == "3":
             break
 
         else:
             print("Opción inválida.")
+            pausarConsola()
 
 
-def seleccionar_servidor(servidores):
+def seleccionarServidor(servidores):
     while True:
-        print("\n==================================================")
+        limpiarConsola()
+        print(lin)
         print("              SELECCIONAR SERVIDOR")
-        print("==================================================")
+        print(lin)
 
-        for i in range(len(servidores)):
-            print(f"{i + 1}. {servidores[i].nombre}")
+        for indice in range(len(servidores)):
+            print(f"{indice + 1}. {servidores[indice].nombre}")
 
         print("0. Volver")
-        print("==================================================")
+        print(lin)
 
-        opcion = input("Seleccione un servidor: ")
+        opcion = input("Seleccione un servidor: ").strip()
 
         if opcion == "0":
             return None
@@ -139,12 +190,15 @@ def seleccionar_servidor(servidores):
                 return servidores[numero - 1]
 
         print("Opción inválida.")
+        pausarConsola()
 
-def menu_red(red):
+
+def menuRed(red):
     while True:
-        print("\n==================================================")
+        limpiarConsola()
+        print(lin)
         print("              ADMINISTRACIÓN DE RED")
-        print("==================================================")
+        print(lin)
 
         print("Servidores disponibles:")
         for servidor in red.servidores:
@@ -155,19 +209,26 @@ def menu_red(red):
         print("3. Diagnosticar red")
         print("4. Simular envío de paquete")
         print("0. Volver")
-        print("==================================================")
+        print(lin)
 
         opcion = input("Seleccione una opción: ").strip()
 
         match opcion:
             case "1":
-                origen = input("Nombre del servidor de origen: ").strip()
-                destino = input("Nombre del servidor de destino: ").strip()
+                origen = input(
+                    "Nombre del servidor de origen: "
+                ).strip()
+                destino = input(
+                    "Nombre del servidor de destino: "
+                ).strip()
 
                 try:
-                    latencia = float(input("Latencia en milisegundos: "))
+                    latencia = float(
+                        input("Latencia en milisegundos: ")
+                    )
                 except ValueError:
                     print("La latencia debe ser un número.")
+                    pausarConsola()
                     continue
 
                 try:
@@ -178,15 +239,23 @@ def menu_red(red):
                 except ValueError as error:
                     print(error)
 
+                pausarConsola()
+
             case "2":
-                origen = input("Nombre del servidor de origen: ").strip()
-                destino = input("Nombre del servidor de destino: ").strip()
+                origen = input(
+                    "Nombre del servidor de origen: "
+                ).strip()
+                destino = input(
+                    "Nombre del servidor de destino: "
+                ).strip()
 
                 try:
                     mensaje = red.eliminar_conexion(origen, destino)
                     print(mensaje)
                 except ValueError as error:
                     print(error)
+
+                pausarConsola()
 
             case "3":
                 origen = input(
@@ -221,14 +290,22 @@ def menu_red(red):
                 except ValueError as error:
                     print(error)
 
+                pausarConsola()
+
             case "4":
-                origen = input("Nombre del servidor de origen: ").strip()
-                destino = input("Nombre del servidor de destino: ").strip()
+                origen = input(
+                    "Nombre del servidor de origen: "
+                ).strip()
+                destino = input(
+                    "Nombre del servidor de destino: "
+                ).strip()
 
                 try:
-                    simular_envio_paquete(red, origen, destino)
+                    simularEnvioPaquete(red, origen, destino)
                 except ValueError as error:
                     print(error)
+
+                pausarConsola()
 
             case "0":
                 print("Volviendo al menú principal...")
@@ -236,7 +313,69 @@ def menu_red(red):
 
             case _:
                 print("Opción inválida.")
+                pausarConsola()
+
+
+def menuAuditoria():
+    while True:
+        limpiarConsola()
+        print(lin)
+        print("              SISTEMA DE AUDITORÍA")
+        print(lin)
+        print("1. Leer todo el registro")
+        print("2. Leer desde una fecha en adelante")
+        print("3. Leer los registros de una fecha")
+        print("0. Volver")
+        print(lin)
+
+        opcion = input("Seleccione una opción: ").strip()
+
+        try:
+            if opcion == "1":
+                moduloAuditoria.leerRegistro()
+                pausarConsola()
+
+            elif opcion == "2":
+                metodoLectura = getattr(
+                    moduloAuditoria, "leerRegistroDesde", None
+                )
+
+                if metodoLectura is None:
+                    print("La lectura del registro por fecha aún no está disponible.")
+                else:
+                    fecha = ingresarFecha()
+                    metodoLectura(fecha)
+
+                pausarConsola()
+
+            elif opcion == "3":
+                metodoLectura = getattr(
+                    moduloAuditoria, "leerRegistroFecha", None
+                )
+
+                if metodoLectura is None:
+                    print("La lectura del registro por fecha aún no está disponible.")
+                else:
+                    fecha = ingresarFecha()
+                    metodoLectura(fecha)
+
+                pausarConsola()
+
+            elif opcion == "0":
+                break
+
+            else:
+                print("Opción inválida.")
+                pausarConsola()
+
+        except OSError as error:
+            print(error)
+            pausarConsola()
+
+
 def main():
+    moduloAuditoria.configurar_auditoria(False)
+
     servidores = [
         Servidor("Servidor 1"),
         Servidor("Servidor 2"),
@@ -248,25 +387,32 @@ def main():
     for servidor in servidores:
         red.agregar_servidor(servidor)
 
+    moduloAuditoria.configurar_auditoria(True)
+
     while True:
-        print("\n==================================================")
+        limpiarConsola()
+        print(lin)
         print("               NETWORK OS")
-        print("==================================================")
+        print(lin)
         print("1. Acceder a un servidor")
         print("2. Administrar red")
+        print("3. Consultar auditoría")
         print("0. Salir")
-        print("==================================================")
+        print(lin)
 
-        opcion = input("Seleccione una opción: ")
+        opcion = input("Seleccione una opción: ").strip()
 
         if opcion == "1":
-            servidor = seleccionar_servidor(servidores)
+            servidor = seleccionarServidor(servidores)
 
             if servidor is not None:
-                menu_autenticacion(servidor)
+                menuAutenticacion(servidor)
 
         elif opcion == "2":
-            menu_red(red)
+            menuRed(red)
+
+        elif opcion == "3":
+            menuAuditoria()
 
         elif opcion == "0":
             print("Saliendo del sistema...")
@@ -274,7 +420,9 @@ def main():
 
         else:
             print("Opción inválida.")
+            pausarConsola()
 
 
 if __name__ == "__main__":
     main()
+    

@@ -55,7 +55,28 @@ def registrar_evento(origen, accion):
     return True
 
 
-def leer_registro():
+def validarFecha(fechaTemp):
+    if not isinstance(fechaTemp, str):
+        raise ValueError("Fecha inválida. Use el formato dd:mm:aaaa.")
+
+    fechaTextoTemp = fechaTemp.strip()
+
+    try:
+        fechaConvertidaTemp = datetime.strptime(
+            fechaTextoTemp, "%d:%m:%Y"
+        ).date()
+    except ValueError as error:
+        raise ValueError(
+            "Fecha inválida. Use el formato dd:mm:aaaa."
+        ) from error
+
+    if fechaConvertidaTemp.strftime("%d:%m:%Y") != fechaTextoTemp:
+        raise ValueError("Fecha inválida. Use el formato dd:mm:aaaa.")
+
+    return fechaConvertidaTemp
+
+
+def obtenerRegistros():
     if not _ruta_archivo.exists():                        #se revisa si existe el archivo, de lo contrario se tira error.
         raise FileNotFoundError(
             "Error! Archivo no encontrado o inexistente."
@@ -71,22 +92,93 @@ def leer_registro():
     with archivo:
         lineasTemp = archivo.readlines()                #Se empieza el proceso de leectura.
 
-        if not any(lineaTemp.strip() for lineaTemp in lineasTemp):    #Se revisa si hay siquiera texto. Si el archivo esta vacio, retorna notificacion.
-            print("Registro Vacío! No hay datos registrados.")
-            return False
+    if not any(lineaTemp.strip() for lineaTemp in lineasTemp):
+        return []
 
-        for lineaTemp in lineasTemp:            #Loop de lectura de datos
-            if not lineaTemp.strip():
-                continue
+    registrosTemp = []
 
-            datosTemp = lineaTemp.rstrip("\r\n").split("~")
+    for lineaTemp in lineasTemp:            #Loop de lectura de datos
+        if not lineaTemp.strip():
+            continue
 
-            origenTemp = datosTemp[0]
-            accionTemp = datosTemp[1]
-            fechaHoraTemp = datosTemp[2]
+        datosTemp = lineaTemp.rstrip("\r\n").split("~")
 
-            print("==============================\n"            #Formato de display de datos.
-                  f"Origen: {origenTemp}, Acción: {accionTemp}, Fecha y hora: {fechaHoraTemp}\n"
-                  "==============================", end="\n")
-            
+        origenTemp = datosTemp[0]
+        accionTemp = datosTemp[1]
+        fechaHoraTemp = datosTemp[2]
+        fechaRegistroTemp = datetime.strptime(
+            fechaHoraTemp, "%d:%m:%Y %H:%M:%S"
+        ).date()
+
+        registrosTemp.append(
+            (origenTemp, accionTemp, fechaRegistroTemp, fechaHoraTemp)
+        )
+
+    return registrosTemp
+
+
+def imprimirRegistros(registrosTemp):            #Imprime el registro
+    for registroTemp in registrosTemp:
+        origenTemp = registroTemp[0]
+        accionTemp = registroTemp[1]
+        fechaHoraTemp = registroTemp[3]
+
+        print("==============================\n"            #Formato de display de datos.
+              f"Origen: {origenTemp}, Acción: {accionTemp}, Fecha y hora: {fechaHoraTemp}\n"
+              "==============================", end="\n")
+        print()
+
+
+def leerRegistro():                        #Lee todos los registros existentes.
+    registrosTemp = obtenerRegistros()
+
+    if not registrosTemp:
+        print("Registro Vacío! No hay datos registrados.")
+        return False
+
+    imprimirRegistros(registrosTemp)
+    return True
+
+
+def leerRegistroDesde(fecha):                #Lee todos los registros a partir de una fecha.
+    fechaInicioTemp = validarFecha(fecha)
+    registrosTemp = obtenerRegistros()
+
+    if not registrosTemp:
+        print("Registro Vacío! No hay datos registrados.")
+        return False
+
+    registrosFiltradosTemp = [
+        registroTemp
+        for registroTemp in registrosTemp
+        if registroTemp[2] >= fechaInicioTemp
+    ]
+
+    if not registrosFiltradosTemp:
+        print("No hay registros desde la fecha indicada.")
+        return False
+
+    imprimirRegistros(registrosFiltradosTemp)
+    return True
+
+
+def leerRegistroFecha(fecha):                #Lee todos los registros de una fecha.
+    fechaEspecificaTemp = validarFecha(fecha)
+    registrosTemp = obtenerRegistros()
+
+    if not registrosTemp:
+        print("Registro Vacío! No hay datos registrados.")
+        return False
+
+    registrosFiltradosTemp = [
+        registroTemp
+        for registroTemp in registrosTemp
+        if registroTemp[2] == fechaEspecificaTemp
+    ]
+
+    if not registrosFiltradosTemp:
+        print("No hay registros para la fecha indicada.")
+        return False
+
+    imprimirRegistros(registrosFiltradosTemp)
     return True
