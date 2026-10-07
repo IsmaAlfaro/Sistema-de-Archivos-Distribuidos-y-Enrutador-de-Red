@@ -332,12 +332,12 @@ def menuAuditoria():
 
         try:
             if opcion == "1":
-                moduloAuditoria.leer_registro()
+                moduloAuditoria.leerRegistro()
                 pausarConsola()
 
             elif opcion == "2":
                 metodoLectura = getattr(
-                    moduloAuditoria, "leer_registro_desde", None
+                    moduloAuditoria, "leerRegistroDesde", None
                 )
 
                 if metodoLectura is None:
@@ -350,7 +350,7 @@ def menuAuditoria():
 
             elif opcion == "3":
                 metodoLectura = getattr(
-                    moduloAuditoria, "leer_registro_fecha", None
+                    moduloAuditoria, "leerRegistroFecha", None
                 )
 
                 if metodoLectura is None:
@@ -425,3 +425,4 @@ def main():
 
 if __name__ == "__main__":
     main()
+    
