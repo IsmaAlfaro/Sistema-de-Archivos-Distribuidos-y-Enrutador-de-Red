@@ -22,26 +22,31 @@ paquetes por el camino más corto y auditoría de las operaciones.
 - Registro de servidores en un grafo, evitando nombres duplicados.
 - Creación y eliminación de conexiones bidireccionales con latencia positiva.
 - Diagnóstico BFS: recorrido, servidores no alcanzables, servidores aislados y estado de conectividad.
+- Dijkstra manual, reconstrucción de la ruta y simulación del envío mostrando saltos y latencia total.
+- Auditoría automática de archivos, conexiones, cálculo de rutas, registro de usuarios y accesos exitosos o fallidos.
+- Consulta del historial completo, desde una fecha o para una fecha específica.
 - Menú de administración de red integrado en `main.py`, con selección mediante `match/case` y manejo de errores.
 - Pruebas de conexiones, eliminación y diagnóstico de red con `assert`.
 
-El menú principal permite acceder a los servidores o administrar la red.
+El menú principal permite acceder a los servidores, administrar la red o consultar auditoría.
 `main()` crea una única instancia de `GrafoRed` con los mismos objetos `Servidor`
-utilizados para autenticación y archivos, y la pasa a `menu_red(red)`.
+utilizados para autenticación y archivos, y la pasa a `menuRed(red)`.
 Los usuarios, archivos y conexiones se mantienen en memoria durante la ejecución;
-la red no se vuelve a crear al abrir el submenú.
+la red no se vuelve a crear al abrir el submenú. La auditoría se activa después de
+crear los servidores iniciales; sus registros se conservan en `network_audit_log.txt`.
 
 ### Pendientes
 
-- Implementar Dijkstra y reconstruir la ruta de menor latencia.
-- Simular el envío de paquetes mostrando cada salto y el costo total.
-- Registrar automáticamente fecha, hora y detalle de eventos en `network_audit_log.txt` mediante append.
-- Consultar el archivo de auditoría desde el menú.
-- Integrar el enrutamiento y la auditoría en los menús existentes.
-- Completar la organización de menús por módulos.
 - Corregir la eliminación por ruta: seleccionar al hijo directo de la carpeta padre antes de borrar su subárbol. Actualmente la búsqueda puede eliminar un descendiente de otra ruta con el mismo nombre.
-- Validar nombres de archivos y carpetas para rechazar valores vacíos o que contengan `/`.
+- Proteger el formato de auditoría frente a separadores dentro de los datos y registros incompletos o con fechas inválidas.
+- Manejar fallos de escritura de auditoría desde archivos, autenticación y red.
+- Exigir latencias finitas y positivas; actualmente se aceptan `nan` e `inf`.
+- Validar nombres de archivos y carpetas, credenciales vacías y entradas del selector de servidores.
+- Optimizar la escritura del log para evitar leer todo el historial en cada evento.
 - Revisar la distribución y el crecimiento de la tabla hash para limitar las colisiones.
+- Ampliar pruebas de árboles, autenticación, auditoría y casos límite.
+- Completar las bitácoras de IA con los aportes de cada integrante.
+- Organizar los menús por módulos después de estabilizar las funciones.
 - Incorporar y documentar las ampliaciones semanales que publique el docente.
 
 ## Estructuras y técnicas implementadas
@@ -51,8 +56,10 @@ la red no se vuelve a crear al abrir el submenú.
 - **Tabla hash manual:** arreglo de listas, función propia basada en la suma de `ord()` y módulo por el tamaño de la tabla. Las colisiones se resuelven mediante encadenamiento.
 - **Grafo ponderado no dirigido:** listas paralelas de servidores y adyacencias; cada conexión almacena `(indice_vecino, latencia)` en ambos extremos.
 - **BFS:** cola implementada con una lista y un índice de lectura, más una lista de visitados para evitar repeticiones.
-- **Excepciones:** las operaciones inválidas de la red lanzan `ValueError`; `menu_red` las captura para informar al usuario. También maneja errores al convertir la latencia a número.
-- **Selección con `match/case`:** el menú de red ofrece agregar conexiones, eliminarlas, diagnosticar y volver al menú principal.
+- **Excepciones:** las operaciones inválidas de la red lanzan `ValueError`; `menuRed` las captura. El manejo de errores de escritura de auditoría sigue pendiente.
+- **Selección con `match/case`:** el menú de red ofrece agregar conexiones, eliminarlas, diagnosticar, simular envíos y volver al menú principal.
+- **Dijkstra:** búsqueda lineal del mínimo no visitado, relajación de aristas y reconstrucción mediante predecesores.
+- **Auditoría:** append a un archivo UTF-8, fecha y hora mediante `datetime`, lectura y filtros por fecha.
 
 ## Ejecución y pruebas
 
@@ -70,10 +77,17 @@ Ejecutar las pruebas de red:
 python -m tests.prueba_red
 ```
 
-Las pruebas actuales son un script con `assert`, no una suite de `unittest`.
-Se ejecutan como módulo para que los imports encuentren `servidor.py` y
-`grafo_red.py` desde la raíz. Deben ejecutarse sin la opción `-O`, que desactiva
-las aserciones.
+Ejecutar las pruebas de enrutamiento:
+
+```bash
+python practica_grafo.py
+```
+
+Las pruebas actuales son scripts con `assert`, no una suite de `unittest`.
+La prueba de red se ejecuta como módulo para resolver imports desde la raíz.
+Deben ejecutarse sin la opción `-O`, que desactiva las aserciones. En procesos
+nuevos, la auditoría está desactivada por defecto para estas pruebas; `main()`
+la activa para el uso interactivo.
 
 En el entorno de desarrollo de Ismael, si el comando `python` no está disponible
 en PowerShell, se utiliza la ruta del intérprete instalado:
@@ -81,12 +95,14 @@ en PowerShell, se utiliza la ruta del intérprete instalado:
 ```powershell
 & "C:\msys64\ucrt64\bin\python.exe" main.py
 & "C:\msys64\ucrt64\bin\python.exe" -m tests.prueba_red
+& "C:\msys64\ucrt64\bin\python.exe" practica_grafo.py
 ```
 
 El último mensaje esperado de las pruebas es:
 
 ```text
 Pruebas de diagnóstico completadas correctamente.
+Pruebas de enrutamiento completadas correctamente.
 ```
 
 ### Cobertura actual de las pruebas de red
@@ -97,9 +113,18 @@ Pruebas de diagnóstico completadas correctamente.
 | Eliminación | Borrado en ambos sentidos, conservación de servidores y otras conexiones, enlace inexistente y servidor inexistente. |
 | Diagnóstico | Servidor aislado, reconexión de toda la red, componentes separados sin nodos aislados, ciclos sin visitas repetidas y origen inexistente. |
 
-Ismael reportó la ejecución satisfactoria de estas pruebas durante el desarrollo
-guiado. Esto verifica los casos anteriores; la integración completa del programa
-todavía debe probarse cuando estén disponibles los demás módulos.
+Ismael reportó la ejecución satisfactoria de las pruebas durante el desarrollo
+guiado. En la revisión del 7 de octubre de 2026, la IA ejecutó ambos scripts con
+`-B` sobre la versión `888f9a8`: ambos pasaron. `practica_grafo.py` verifica rutas
+directas e indirectas, menor costo, rutas inversas, destinos desconectados, origen
+igual al destino, servidores inexistentes, red vacía, predecesores, latencias
+decimales y conservación de las adyacencias.
+
+Las pruebas adicionales de revisión se ejecutaron en memoria, usando objetos
+simulados para la lectura del log y los errores de E/S. Confirmaron los fallos
+descritos en el plan de correcciones. No se agregaron como archivos de pruebas
+ni se escribió en el log del proyecto. Falta convertir esos casos en pruebas
+de regresión y verificar la integración completa con auditoría activada.
 
 ### Validación manual del menú de red
 
@@ -119,16 +144,21 @@ conexiones fue propuesta, pero todavía no se ha reportado su resultado.
 ## Estructura de módulos
 
 ```text
-main.py              Menú principal, autenticación, archivos y menú de red.
+main.py              Menús principal, autenticación, archivos, red y auditoría.
 servidor.py          Árbol y tabla de usuarios locales de cada servidor.
 nodo_archivo.py      Nodos, búsqueda, visualización y eliminación recursiva.
 tabla_hash.py        Función hash, encadenamiento, registro y autenticación.
 grafo_red.py         Servidores, conexiones ponderadas y diagnóstico BFS.
+enrutamiento.py      Dijkstra, reconstrucción y simulación de envío.
+auditoria.py         Escritura del log, lectura y filtros por fecha.
+grafo.py             Representación alternativa mediante diccionarios, no usada por main.
+practica_grafo.py    Pruebas de enrutamiento con assert.
 tests/
     __init__.py      Identifica el paquete de pruebas.
     prueba_red.py    Pruebas de conexiones, eliminación y diagnóstico.
 .gitignore           Exclusión de cachés de Python.
 README.md            Documentación y bitácora de desarrollo e IA.
+network_audit_log.txt Archivo generado al registrar eventos con auditoría activa.
 ```
 
 La copia local contiene una carpeta `menus/` vacía, reservada para la organización
@@ -137,13 +167,13 @@ carpetas vacías.
 
 ## Bitácora de desarrollo
 
-Esta bitácora se elaboró a partir del código y del historial Git local disponible
-el 3 de octubre de 2026, junto con la conversación de desarrollo de Ismael.
+Esta bitácora se actualizó el 7 de octubre de 2026 a partir del código y del
+historial local hasta `888f9a8`, junto con la conversación de desarrollo de Ismael.
 Las responsabilidades confirmadas son: Alannah desarrolló la base de archivos,
 servidores, autenticación y menús iniciales; Ismael trabajó la red, su diagnóstico
 y la conexión del menú de red con el menú principal.
-Los responsables de enrutamiento y auditoría/integración quedan por confirmar
-en esta documentación.
+Carlos Víquez desarrolló enrutamiento. Los commits de `seguraAriasAndres`
+documentan el trabajo de Andrés en auditoría y su integración con los módulos.
 
 ### Módulos de Archivos, Servidores y Autenticación - Alannah
 
@@ -153,6 +183,7 @@ en esta documentación.
 | 2026-09-24 | `c29ab3c`, `53567b2`, `2c70199` | Eliminación de nodos, clase `Servidor` y operaciones básicas de creación. |
 | 2026-09-24 | `c7c14de`, `2eefe20`, `c8a8fce` | Búsqueda por ruta, manejo de nodos mediante rutas y mejora de la creación. |
 | 2026-09-24 | `7969ca7`, `423778a`, `1b59e7d`, `7e33983` | Registro de prompts, tabla hash, importación en servidor y programa principal. |
+| 2026-09-28 | `2aa4b35`, `5d4caea`, `8f4e3ca` | Grafo alternativo, registro de prompts y actualización del programa principal según los mensajes de commit. |
 
 Estado actual: `NodoArchivo` representa la jerarquía; `Servidor` agrupa el árbol y
 las credenciales; `TablaHash` registra y autentica usuarios mediante encadenamiento.
@@ -188,17 +219,20 @@ reportadas. Se mantiene la numeración original, que no incluía un prompt 9.
 | 2026-10-02 | `cab1d01` | Organización del README con funcionalidades, bitácora, prompts y complejidades. |
 | 2026-10-03 | `4290ba8` | Integración de `menu_red` con `match/case` en `main.py` y acceso desde el menú principal. |
 | 2026-10-03 | `2fd3211` | Actualización del README con la integración del menú de red y las comprobaciones manuales. |
+| 2026-10-03 | `6a92be2` | Incorporación de commits recientes a la bitácora del README. |
 
 Estado actual: `GrafoRed` registra servidores y almacena conexiones bidireccionales
 con latencias positivas. Permite agregar y eliminar enlaces y diagnosticar la red
 mediante BFS. Devuelve los nombres visitados, los no alcanzables, los aislados y
 un booleano que indica si toda la red es alcanzable desde el origen.
 
-La integración actual en `main.py` agrega `menu_red(red)` con `match/case` y la
+La integración inicial en `main.py` agregó `menu_red(red)` con `match/case` y la
 opción «Administrar red» en el menú principal. El submenú solicita nombres,
 convierte la latencia con `float()`, captura `ValueError` y presenta el resultado
 del diagnóstico. Este avance está registrado en el commit `4290ba8` y se
 complementa con las capturas de las pruebas manuales compartidas por Ismael.
+En la versión integrada actual, la función se llama `menuRed` e incluye el envío
+de paquetes incorporado por Carlos; Andrés añadió pausas y limpieza de consola.
 
 La IA propuso fragmentos de implementación, explicaciones y pruebas. Ismael los
 incorporó manualmente, solicitó utilizar `ValueError` para duplicados, consultó
@@ -229,10 +263,17 @@ de una captura o del paso anterior, la columna de función aporta el contexto.
 | Prueba del menú | `y para provarlo` | Las capturas posteriores muestran creación de dos conexiones, diagnóstico de red conectada y diagnóstico con Servidor 3 aislado tras eliminar un enlace. |
 | Cachés de Python | `Me podrias decir como ignorar los cahes` | Se agregó `.gitignore` y se verificó con `git status --ignored` que `__pycache__` quedara ignorado. |
 | Documentación | `quiero que cambies el readme nuevo usando siempre este tipo obviamente con los datos nuevos` | Se solicitó adaptar el formato del proyecto anterior al código, prompts e historial verificables del proyecto actual. |
+| Revisión integral | `ahora si observa todo el proyecto y dime que errores hay, o optimzaciones o cambios para hacer` | La IA revisó los módulos, ejecutó las pruebas existentes y reprodujo errores en memoria. Ismael solicitó correcciones guiadas; todavía no se documentan como resueltas. |
+| Plan de mejoras | `okey actualiza el readme con todo lo nuevo y despues me vas guiando para ir poco a poco con todo lo que hay que arreglar, optimizar o mejorar` | Se actualizó la documentación y se ordenaron las correcciones para aplicación manual, empezando por la eliminación por ruta. |
 
 </details>
 
 ### Módulo Enrutamiento - Carlos Víquez
+
+| Fecha | Evidencia Git | Avance documentado |
+|---|---|---|
+| 2026-10-03 | `7b2b2e9` | Implementación de enrutamiento y pruebas. |
+| 2026-10-03 | `d2a7a6e` | Integración del envío de paquetes en el menú de red. |
 
 Estado actual: `enrutamiento.py` calcula la ruta de menor latencia con Dijkstra
 implementado manualmente sobre las listas `servidores` y `adyacencias` de
@@ -241,7 +282,7 @@ implementado manualmente sobre las listas `servidores` y `adyacencias` de
 Maneja origen o destino inexistentes (`ValueError`), origen igual al destino
 y destino sin ruta. El menú de red tiene la opción 4 para simular el envío.
 
-Pruebas: `python -m tests.prueba_enrutamiento` (ruta directa, varios saltos,
+Pruebas: `python practica_grafo.py` (ruta directa, varios saltos,
 elección de menor latencia, sin ruta, origen = destino, servidor inexistente,
 red vacía y latencias decimales).
 
@@ -250,18 +291,35 @@ en memoria auxiliar.
 
 Validación manual:
 | Acción desde el menú | Resultado observado |
+|---|---|
 | Conectar Servidor 1 con Servidor 2 (10 ms), Servidor 2 con Servidor 3 (15 ms) y Servidor 1 con Servidor 3 (30 ms). | Mensajes de conexión agregada. |
 | Simular envío de Servidor 1 a Servidor 3. | Eligió el desvío, no la conexión directa de 30 ms: `Servidor 1 -> Servidor 2 -> Servidor 3`, con latencia total de `25.0 ms`. |
 | Diagnosticar la red desde Servidor 1 tras eliminar enlaces. | Recorrido `Servidor 1 -> Servidor 2`, red no conectada y Servidor 3 aislado y no alcanzable. El diagnóstico BFS siguió funcionando con normalidad. |
 
-### Módulo Auditoría y Menús - Responsable por confirmar
+Pendiente documental: Carlos debe aportar sus prompts utilizados y explicar sus
+adaptaciones. Las comprobaciones de esta sección proceden del README previo y
+del script existente, sin reconstruir conversaciones que no fueron compartidas.
 
-Pendiente de implementación: registro con fecha y hora en `network_audit_log.txt`,
-consulta del registro e integración del enrutamiento y de los eventos de auditoría.
-El menú de conexiones y diagnóstico ya está integrado por Ismael en `main.py`,
-captura `ValueError` y utiliza una instancia compartida de la red. La separación
-en carpetas se realizará posteriormente. Cada integrante deberá completar sus
-propios prompts y validaciones.
+### Módulo Auditoría y Menús - Andrés
+
+| Fecha | Evidencia Git | Avance documentado |
+|---|---|---|
+| 2026-10-04 | `5c5ddc8`, `68cd354`, `49fd4f7`, `8f4f1c6`, `2b33a6f` | Creación y ajustes del módulo de auditoría. |
+| 2026-10-04 | `d10e57b`, `1c5e75c`, `395b044`, `6498d88`, `c2b9979`, `9f8204d` | Integración de eventos en enrutamiento, grafo y servidor. |
+| 2026-10-05 | `f7a1e2b` | Actualización de auditoría. |
+| 2026-10-06 | `ffcb377`, `d712c5a` | Auditoría de registro y autenticación con identificación del servidor. |
+| 2026-10-06 | `67fb847`, `e31456d`, `04fb76c` | Actualización de auditoría y menús; la versión integrada incluye filtros por fecha y activación del registro. |
+
+Estado actual: `auditoria.py` agrega fecha, hora, origen y acción al archivo
+`network_audit_log.txt`. `menuAuditoria()` permite consultar todo el historial,
+desde una fecha o una fecha específica. `main()` activa la auditoría después
+de inicializar los servidores. `TablaHash` registra altas y accesos exitosos o
+fallidos; servidor, grafo y enrutamiento registran sus operaciones integradas.
+
+Pendientes: robustecer el formato del registro, manejar errores de escritura en
+los menús operativos y optimizar el append. Andrés debe completar sus prompts,
+adaptaciones y validaciones reportadas. La separación de menús en carpetas sigue
+planificada para una etapa posterior.
 
 ### Historial de integraciones observable
 
@@ -270,6 +328,10 @@ propios prompts y validaciones.
 | 2026-09-23 | `d2c110f` | Merge del pull request #1 desde `IsmaAlfaro/Alannah`. |
 | 2026-09-24 | `280caba` | Merge del pull request #2 desde `IsmaAlfaro/Alannah`. |
 | 2026-09-24 | `c778a84` | Merge del pull request #3 desde `IsmaAlfaro/Alannah`. |
+| 2026-09-28 | `803e085` | Merge del pull request #4 desde `IsmaAlfaro/Alannah`. |
+| 2026-10-03 | `c98a289` | Integración de `main` en la rama Carlos. |
+| 2026-10-03 | `10f6e2f`, `6cbf398`, `588c5d6` | Merges de los pull requests #5, #6 y #7 desde `IsmaAlfaro/Carlos`. |
+| 2026-10-06 | `7cf499e`, `888f9a8` | Merges de los pull requests #8 y #9 desde `IsmaAlfaro/Andrés-Dev`. |
 
 Estas entradas proceden del historial local de commits. No constituyen un
 registro de todas las operaciones de fetch, push o sincronización remota.
@@ -286,10 +348,42 @@ registro de todas las operaciones de fetch, push o sincronización remota.
 | 2026-09-24 | `280caba` | alannah-byte | Merge pull request #2. |
 | 2026-09-24 | `c778a84` | Ismael Alfaro Benavides | Merge pull request #3. |
 | 2026-09-25 | `b32f689` | IsmaAlfaro | Ignorar archivos de caché de Python. |
+| 2026-09-28 | `2aa4b35`, `5d4caea`, `8f4e3ca`, `803e085` | alannah-byte | Grafo alternativo, prompts, main e integración por PR #4. |
 | 2026-10-02 | `f43be98` | IsmaAlfaro | creacion del grafo red, la carpeta de pruebas (Test). |
 | 2026-10-02 | `cab1d01` | IsmaAlfaro | readme limpio |
 | 2026-10-03 | `4290ba8` | IsmaAlfaro | integracion de menu red a el menu en main |
 | 2026-10-03 | `2fd3211` | IsmaAlfaro | Actualizar README con integracion del menu de red |
+| 2026-10-03 | `6a92be2` | IsmaAlfaro | Completar commits recientes en la bitacora del README |
+| 2026-10-03 | `c98a289`, `10f6e2f`, `7b2b2e9`, `6cbf398`, `d2a7a6e`, `588c5d6` | Carlos Viquez / CarlosViquez31 | Sincronización, enrutamiento, pruebas, menú e integraciones #5–#7. |
+| 2026-10-04 | `5c5ddc8`, `68cd354`, `49fd4f7`, `d10e57b`, `395b044`, `c2b9979`, `8f4f1c6`, `9f8204d`, `6498d88`, `1c5e75c`, `2b33a6f` | seguraAriasAndres | Creación y ajustes de auditoría e integración con módulos. |
+| 2026-10-05 | `f7a1e2b` | seguraAriasAndres | Update auditoria.py |
+| 2026-10-06 | `7cf499e` | Ismael Alfaro Benavides | Merge pull request #8. |
+| 2026-10-06 | `ffcb377`, `d712c5a`, `67fb847`, `e31456d`, `04fb76c`, `888f9a8` | seguraAriasAndres | Autenticación, servidor, auditoría, menús y merge del PR #9. |
+
+## Plan de correcciones y mejoras
+
+Estado de referencia: revisión del 7 de octubre de 2026 sobre `888f9a8`.
+Los puntos siguientes están pendientes; su documentación no significa que hayan
+sido corregidos. Cada cambio se aplicará manualmente y se verificará antes de
+continuar con el siguiente.
+
+| Orden | Área y cambio | Evidencia / comprobación prevista |
+|---|---|---|
+| 1 | Seleccionar el hijo directo al eliminar por ruta y conservar el vaciado recursivo. | Confirmado: eliminar `/Documentos/nota.txt` borra `/Documentos/Tareas/nota.txt` aunque la primera ruta no exista. Probar también nombres iguales en distintos niveles y cascada. |
+| 2 | Proteger el formato del log y validar cada registro antes de interpretarlo. | Confirmado con lectura simulada: `~` dentro de una acción puede provocar `ValueError`; una línea incompleta produce `IndexError`. |
+| 3 | Capturar errores de escritura de auditoría en autenticación, archivos y red. | Un `OSError` simulado escapa del menú de autenticación. Verificar que se informe al usuario y se mantenga un estado coherente. |
+| 4 | Validar latencias finitas y positivas dentro de `GrafoRed`. | Confirmado: con `nan` o `inf`, BFS declara conectividad pero Dijkstra no encuentra ruta. |
+| 5 | Validar nombres, credenciales y selección numérica. | Confirmado: se crean nodos con nombres vacíos, `/` y `a/b` que no se recuperan por su ruta; se autentican credenciales vacías; `²` provoca `ValueError` en el selector. |
+| 6 | Añadir pruebas de regresión e integración para los casos anteriores y los filtros de auditoría. | Las pruebas existentes de red y enrutamiento pasan, pero no cubren esos errores. |
+| 7 | Evitar leer todo el log para escribir un evento y controlar el crecimiento de la tabla hash. | `registrar_evento` lee el archivo completo; la tabla tiene 10 buckets y no redimensiona. |
+| 8 | Unificar estilo, aclarar el grafo alternativo, reutilizar validación de fechas y separar menús. | Dos clases `GrafoRed` con interfaces distintas; mezcla de convenciones y validación de fechas duplicada. |
+
+Otros ajustes de mantenimiento: hacer portable `limpiarConsola()` (actualmente
+usa `cls`), reemplazar búsquedas dinámicas innecesarias de funciones de auditoría
+por llamadas directas y mantener el README alineado con las correcciones.
+
+La implementación lineal de Dijkstra es adecuada para la escala actual. Cambiarla
+por una cola de prioridad es una optimización opcional para redes mayores.
 
 ## Complejidad de las estructuras y algoritmos actuales
 
@@ -340,3 +434,16 @@ Sea `V` el número de servidores, `E` el número de conexiones no dirigidas y
 Un servidor aislado tiene grado cero. Un servidor no alcanzable pertenece a una
 zona que no puede recorrerse desde el origen, aunque tenga conexiones con otros
 servidores. BFS diagnostica conectividad; no calcula la ruta de menor latencia.
+
+### Dijkstra y auditoría
+
+| Operación | Complejidad actual | Explicación |
+|---|---|---|
+| Dijkstra | O(V² + E), equivalente a O(V²) en este grafo simple | Busca linealmente el mínimo en cada iteración y recorre las adyacencias. Memoria auxiliar O(V). |
+| Reconstruir ruta | O(V) en el peor caso | Sigue predecesores e invierte la lista. |
+| Agregar evento al log | O(B) en tiempo y memoria | Actualmente lee todo el archivo, de B caracteres, antes de agregar la línea. |
+| Leer y filtrar auditoría | O(B) para leer, más el procesamiento de registros | Carga el contenido y construye listas de registros y resultados filtrados. |
+
+Los costos de escritura de auditoría se suman a los de las operaciones que la
+invocan. En particular, la autenticación con auditoría activa no tiene un costo
+total constante mientras cada evento lea el historial completo.
