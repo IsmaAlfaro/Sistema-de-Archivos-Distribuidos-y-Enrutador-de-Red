@@ -53,9 +53,6 @@ class NodoArchivo:
                 self.hijos.remove(hijo)
                 return True
 
-            if hijo.eliminar(nombre):
-                return True
-
         return False
     
    

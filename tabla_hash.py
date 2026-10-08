@@ -12,7 +12,7 @@ class TablaHash:
         suma = 0
 
         for letra in usuario:
-            suma += ord(letra)
+            suma = suma * 7 + ord(letra)
 
         return suma % self.tamaño
 
