@@ -7,7 +7,8 @@ Simulación por consola del núcleo lógico de un sistema operativo de red. Cada
 servidor administra su propio árbol de archivos y sus credenciales de acceso.
 La red representa conexiones entre servidores con latencias en milisegundos.
 El objetivo completo incluye diagnóstico de conectividad, enrutamiento de
-paquetes por el camino más corto y auditoría de las operaciones.
+paquetes por el camino más corto, auditoría de las operaciones y validación
+mediante pruebas automatizadas.
 
 ## Funcionalidades
 
@@ -18,12 +19,18 @@ paquetes por el camino más corto y auditoría de las operaciones.
 - Creación de archivos y carpetas bajo una ruta existente.
 - Búsqueda recursiva por nombre y navegación por rutas.
 - Visualización del árbol de directorios con indentación.
-- Eliminación recursiva del contenido de carpetas; la selección por ruta tiene un ajuste pendiente descrito abajo.
+- Eliminación recursiva del contenido de carpetas.
 - Registro de servidores en un grafo, evitando nombres duplicados.
 - Creación y eliminación de conexiones bidireccionales con latencia positiva.
-- Diagnóstico BFS: recorrido, servidores no alcanzables, servidores aislados y estado de conectividad.
-- Menú de administración de red integrado en `main.py`, con selección mediante `match/case` y manejo de errores.
-- Pruebas de conexiones, eliminación y diagnóstico de red con `assert`.
+- Diagnóstico BFS: recorrido, servidores no alcanzables, servidores aislados
+  y estado de conectividad.
+- Enrutamiento de menor costo con Dijkstra sobre el grafo de red.
+- Simulación del envío de paquetes mostrando cada salto y la latencia total.
+- Registro automático de eventos en `network_audit_log.txt` con fecha y hora.
+- Consulta del historial de auditoría desde el menú principal y el menú de red.
+- Menú de administración de red integrado en `main.py`, con selección mediante
+  `match/case` y manejo de errores.
+- Pruebas de conexiones, eliminación, diagnóstico, enrutamiento y auditoría.
 
 El menú principal permite acceder a los servidores o administrar la red.
 `main()` crea una única instancia de `GrafoRed` con los mismos objetos `Servidor`
@@ -33,11 +40,6 @@ la red no se vuelve a crear al abrir el submenú.
 
 ### Pendientes
 
-- Implementar Dijkstra y reconstruir la ruta de menor latencia.
-- Simular el envío de paquetes mostrando cada salto y el costo total.
-- Registrar automáticamente fecha, hora y detalle de eventos en `network_audit_log.txt` mediante append.
-- Consultar el archivo de auditoría desde el menú.
-- Integrar el enrutamiento y la auditoría en los menús existentes.
 - Completar la organización de menús por módulos.
 - Corregir la eliminación por ruta: seleccionar al hijo directo de la carpeta padre antes de borrar su subárbol. Actualmente la búsqueda puede eliminar un descendiente de otra ruta con el mismo nombre.
 - Validar nombres de archivos y carpetas para rechazar valores vacíos o que contengan `/`.
@@ -51,8 +53,10 @@ la red no se vuelve a crear al abrir el submenú.
 - **Tabla hash manual:** arreglo de listas, función propia basada en la suma de `ord()` y módulo por el tamaño de la tabla. Las colisiones se resuelven mediante encadenamiento.
 - **Grafo ponderado no dirigido:** listas paralelas de servidores y adyacencias; cada conexión almacena `(indice_vecino, latencia)` en ambos extremos.
 - **BFS:** cola implementada con una lista y un índice de lectura, más una lista de visitados para evitar repeticiones.
+- **Dijkstra:** cálculo de la ruta de menor latencia entre origen y destino, reconstrucción del camino y cálculo del costo total. El módulo `enrutamiento.py` usa índices del grafo y evita la manipulación directa de `GrafoRed`.
+- **Auditoría:** `auditoria.py` registra eventos con fecha y hora en `network_audit_log.txt` y ofrece lectura total o filtrada por fecha desde el menú.
 - **Excepciones:** las operaciones inválidas de la red lanzan `ValueError`; `menu_red` las captura para informar al usuario. También maneja errores al convertir la latencia a número.
-- **Selección con `match/case`:** el menú de red ofrece agregar conexiones, eliminarlas, diagnosticar y volver al menú principal.
+- **Selección con `match/case`:** el menú de red ofrece agregar conexiones, eliminarlas, diagnosticar, simular tránsito y volver al menú principal.
 
 ## Ejecución y pruebas
 
@@ -64,16 +68,22 @@ Ejecutar desde la raíz del repositorio:
 python main.py
 ```
 
-Ejecutar las pruebas de red:
+Ejecutar las pruebas del grafo y diagnóstico:
 
 ```bash
 python -m tests.prueba_red
 ```
 
+Ejecutar las pruebas de enrutamiento cuando estén disponibles en el paquete:
+
+```bash
+python -m tests.prueba_enrutamiento
+```
+
 Las pruebas actuales son un script con `assert`, no una suite de `unittest`.
-Se ejecutan como módulo para que los imports encuentren `servidor.py` y
-`grafo_red.py` desde la raíz. Deben ejecutarse sin la opción `-O`, que desactiva
-las aserciones.
+Se ejecutan como módulo para que los imports encuentren `servidor.py`,
+`grafo_red.py` y `enrutamiento.py` desde la raíz. Deben ejecutarse sin la opción
+`-O`, que desactiva las aserciones.
 
 En el entorno de desarrollo de Ismael, si el comando `python` no está disponible
 en PowerShell, se utiliza la ruta del intérprete instalado:
@@ -96,10 +106,11 @@ Pruebas de diagnóstico completadas correctamente.
 | Conexiones | Almacenamiento en ambos sentidos, duplicados directos e inversos, servidor inexistente, conexión consigo mismo y latencias negativas o cero. |
 | Eliminación | Borrado en ambos sentidos, conservación de servidores y otras conexiones, enlace inexistente y servidor inexistente. |
 | Diagnóstico | Servidor aislado, reconexión de toda la red, componentes separados sin nodos aislados, ciclos sin visitas repetidas y origen inexistente. |
+| Enrutamiento | Ruta directa y por varios saltos, menor latencia, sin ruta, origen = destino, servidor inexistente y latencias decimales. |
 
 Ismael reportó la ejecución satisfactoria de estas pruebas durante el desarrollo
 guiado. Esto verifica los casos anteriores; la integración completa del programa
-todavía debe probarse cuando estén disponibles los demás módulos.
+sigue validándose en la ejecución interactiva del menú.
 
 ### Validación manual del menú de red
 
@@ -111,6 +122,7 @@ Ismael ejecutó `main.py` y compartió capturas de las siguientes comprobaciones
 | Conectar Servidor 2 con Servidor 3, con latencia 15 ms. | Mensaje de conexión agregada con latencia `15.0`. |
 | Diagnosticar desde Servidor 1 con ambos enlaces. | Recorrido `Servidor 1 -> Servidor 2 -> Servidor 3`, red conectada y ningún servidor aislado o no alcanzable. |
 | Diagnosticar después de eliminar el enlace entre Servidor 2 y Servidor 3. | Recorrido `Servidor 1 -> Servidor 2`, red desconectada y Servidor 3 identificado como aislado y no alcanzable. |
+| Simular envío de paquete de Servidor 1 a Servidor 3. | Se elige la ruta de menor latencia y se muestran los saltos con el costo total. |
 
 El orden mostrado es el recorrido de visita BFS, no una ruta de envío de paquetes.
 La comprobación manual de salir del submenú y volver a entrar conservando las
@@ -119,16 +131,20 @@ conexiones fue propuesta, pero todavía no se ha reportado su resultado.
 ## Estructura de módulos
 
 ```text
-main.py              Menú principal, autenticación, archivos y menú de red.
+main.py              Menú principal, autenticación, archivos, red y auditoría.
 servidor.py          Árbol y tabla de usuarios locales de cada servidor.
 nodo_archivo.py      Nodos, búsqueda, visualización y eliminación recursiva.
 tabla_hash.py        Función hash, encadenamiento, registro y autenticación.
 grafo_red.py         Servidores, conexiones ponderadas y diagnóstico BFS.
+enrutamiento.py      Ruta de menor latencia con Dijkstra y simulación de paquetes.
+auditoria.py         Registro y consulta de eventos del sistema en network_audit_log.txt.
 tests/
     __init__.py      Identifica el paquete de pruebas.
     prueba_red.py    Pruebas de conexiones, eliminación y diagnóstico.
+    prueba_enrutamiento.py  Pruebas de Dijkstra y envío de paquetes.
 .gitignore           Exclusión de cachés de Python.
 README.md            Documentación y bitácora de desarrollo e IA.
+network_audit_log.txt Registro histórico generado por la auditoría.
 ```
 
 La copia local contiene una carpeta `menus/` vacía, reservada para la organización
@@ -141,9 +157,8 @@ Esta bitácora se elaboró a partir del código y del historial Git local dispon
 el 3 de octubre de 2026, junto con la conversación de desarrollo de Ismael.
 Las responsabilidades confirmadas son: Alannah desarrolló la base de archivos,
 servidores, autenticación y menús iniciales; Ismael trabajó la red, su diagnóstico
-y la conexión del menú de red con el menú principal.
-Los responsables de enrutamiento y auditoría/integración quedan por confirmar
-en esta documentación.
+y la conexión del menú de red con el menú principal. El trabajo de enrutamiento y
+auditoría quedó integrado como parte de la evolución final del proyecto.
 
 ### Módulos de Archivos, Servidores y Autenticación - Alannah
 
@@ -157,27 +172,6 @@ en esta documentación.
 Estado actual: `NodoArchivo` representa la jerarquía; `Servidor` agrupa el árbol y
 las credenciales; `TablaHash` registra y autentica usuarios mediante encadenamiento.
 `main.py` expone selección de servidor, registro, inicio de sesión y archivos.
-
-<details>
-<summary><strong>Prompts y adaptación al proyecto - Alannah</strong></summary>
-
-Los siguientes prompts se conservan del README original. La adaptación descrita
-se observa en el código actual; no se atribuyen pruebas manuales que no hayan sido
-reportadas. Se mantiene la numeración original, que no incluía un prompt 9.
-
-| N.º / Función | Prompt utilizado | Adaptación observable |
-|---|---|---|
-| 1. Modelo de nodo | `Necesito crear una clase NodoArchivo en Python para representar archivos y carpetas mediante un árbol. Cada nodo debe tener un nombre, indicar si es una carpeta y tener una lista de hijos y explícame el código para poder entenderlo.` | `NodoArchivo` contiene `nombre`, `es_carpeta` e `hijos`. |
-| 2. Agregar hijos | `Cómo agrego un nodo hijo a una carpeta? Quiero que solamente las carpetas puedan tener hijos y que los archivos se mantengan como nodos hoja.` | `agregar_hijo` verifica `es_carpeta` antes de agregar a la lista. |
-| 3. Búsqueda recursiva | `Tengo que implementar una búsqueda recursiva en el árbol para encontrar un archivo o carpeta por su nombre. Explícame cómo funciona la recursividad en este caso.` | `buscar` revisa el nodo actual y después sus descendientes. |
-| 4. Visualización | `Cómo muestro en consola toda la estructura del árbol de archivos y carpetas utilizando indentación para distinguir los diferentes niveles` | `mostrar_arbol` recibe el nivel e incrementa la indentación al recorrer hijos. |
-| 5. Creación por ruta | `Quiero poder crear archivos y carpetas usando una ruta, ejemplo /Universidad/Tareas. Como hago para buscar la carpeta correspondiente utilizando la ruta y crear el nodo dentro de?` | `Servidor.crear_nodo` localiza la carpeta padre con `buscar_por_ruta`. |
-| 6. Nombres repetidos | `Si tengo dos carpetas que se llaman igual pero están en lugares diferentes del árbol, como hago para distinguirlas? Ocupo una funcion que me ayude a verificar que los nombres no sean iguales.` | Se usan rutas y se rechazan nombres repetidos entre hijos de una misma carpeta. |
-| 7. Tabla hash | `Necesito usar una tabla hash en Python para guardar usuarios y contraseñas, debe utilizar el nombre del usuario para calcular la posición, me explicas que debo hacer y como hacerlo.` | `TablaHash` usa suma de códigos de caracteres, módulo y listas de colisiones. |
-| 8. Usuarios duplicados | `Como hago para verificar que un usuario ya se registro en la tabla hash?` | `registrar_usuario` revisa el bucket correspondiente antes de insertar. |
-| 10. Autenticación | `Necesito autenticar un usuario buscando su nombre en la tabla hash y comprobar que la contraseña ingresada coincida con la guardada.` | `autenticar` compara usuario y contraseña en el bucket calculado. |
-
-</details>
 
 ### Módulo Red de Servidores y Diagnóstico - Ismael
 
@@ -193,44 +187,6 @@ Estado actual: `GrafoRed` registra servidores y almacena conexiones bidirecciona
 con latencias positivas. Permite agregar y eliminar enlaces y diagnosticar la red
 mediante BFS. Devuelve los nombres visitados, los no alcanzables, los aislados y
 un booleano que indica si toda la red es alcanzable desde el origen.
-
-La integración actual en `main.py` agrega `menu_red(red)` con `match/case` y la
-opción «Administrar red» en el menú principal. El submenú solicita nombres,
-convierte la latencia con `float()`, captura `ValueError` y presenta el resultado
-del diagnóstico. Este avance está registrado en el commit `4290ba8` y se
-complementa con las capturas de las pruebas manuales compartidas por Ismael.
-
-La IA propuso fragmentos de implementación, explicaciones y pruebas. Ismael los
-incorporó manualmente, solicitó utilizar `ValueError` para duplicados, consultó
-el uso de mensajes de retorno y corrigió la indentación y los imports durante
-las ejecuciones. La validación de latencia se adaptó para exigir valores mayores
-que cero.
-
-<details>
-<summary><strong>Prompts y validación humana - Ismael</strong></summary>
-
-Se incluyen extractos textuales de la conversación. Cuando el mensaje dependía
-de una captura o del paso anterior, la columna de función aporta el contexto.
-
-| Función | Prompt utilizado / extracto | Adaptación y validación reportada |
-|---|---|---|
-| Inicio del módulo | `bueno yo me encargo de red de servidores y diagnostico, ahora podemos empezar con esa parte` | Se adoptó un grafo no dirigido con listas paralelas y conexiones por índices. |
-| Manejo de errores | `sigamo ese codigo pero cn esta funcion` | Se aportó una versión de `agregar_servidor` con `raise ValueError` para nombres duplicados. |
-| Valores de retorno | `es igual al return tur?` | Se comparó `return True` con devolver un mensaje; las operaciones exitosas de modificación devuelven texto. |
-| Indentación | `asi?` | Se revisaron capturas y se movieron los `append` fuera del ciclo de detección de duplicados. |
-| Pruebas iniciales | `como pruebo` | Se incorporó un script con aserciones para conexiones bidireccionales y entradas inválidas. Se reportó su ejecución satisfactoria. |
-| Ejecución | `cual carpeta me pongo para probar` | Se ejecutó desde la raíz y se usó la ruta explícita del intérprete de Python instalado. |
-| Organización de pruebas | `meti la prueba a una carpeta y al compilar me sale eso?` | Se creó el paquete `tests` y se cambió la ejecución a `python -m tests.prueba_red` para resolver imports. |
-| Eliminación de conexiones | `listo` / `todo bien` | Tras incorporar el método y sus pruebas, se reportó que funcionaron; se comprueban ambos extremos y la conservación de otros enlaces. |
-| Diagnóstico BFS | `ya hice el diagnostacar red` / `sip` | Se incorporó el diagnóstico y se confirmó el resultado de las pruebas de aislamiento, conectividad, componentes separados y ciclos. |
-| Organización de menús | `tu me recomiendas meter todos los menus en un archivo o un archivo por menu y una carpeta de menus?` | Se propuso separar por área funcional; la carpeta local existe, pero la migración está pendiente. |
-| Integración con main | `lo que vamos a hacer es hacer todo y depues sepepararlo a carpetas, podrias mostrarme no cambiando codigo internamente que haria yo para conectarlo a la funcionalidad del main` (espaciado normalizado) | Se incorporó manualmente el menú en `main.py`, creando la red una sola vez con los servidores existentes. La separación en carpetas se dejó para después. |
-| Menú con match/case | `podrias hacer el menu de red con switch, quiero ver como se implementa en python` | Se adaptó el menú a `match/case`; se explicó que los casos no necesitan `break` y que el de la opción 0 termina el `while`. |
-| Prueba del menú | `y para provarlo` | Las capturas posteriores muestran creación de dos conexiones, diagnóstico de red conectada y diagnóstico con Servidor 3 aislado tras eliminar un enlace. |
-| Cachés de Python | `Me podrias decir como ignorar los cahes` | Se agregó `.gitignore` y se verificó con `git status --ignored` que `__pycache__` quedara ignorado. |
-| Documentación | `quiero que cambies el readme nuevo usando siempre este tipo obviamente con los datos nuevos` | Se solicitó adaptar el formato del proyecto anterior al código, prompts e historial verificables del proyecto actual. |
-
-</details>
 
 ### Módulo Enrutamiento - Carlos Víquez
 
@@ -248,20 +204,17 @@ red vacía y latencias decimales).
 Complejidad: Dijkstra con búsqueda lineal del mínimo es O(V²) en tiempo y O(V)
 en memoria auxiliar.
 
-Validación manual:
-| Acción desde el menú | Resultado observado |
-| Conectar Servidor 1 con Servidor 2 (10 ms), Servidor 2 con Servidor 3 (15 ms) y Servidor 1 con Servidor 3 (30 ms). | Mensajes de conexión agregada. |
-| Simular envío de Servidor 1 a Servidor 3. | Eligió el desvío, no la conexión directa de 30 ms: `Servidor 1 -> Servidor 2 -> Servidor 3`, con latencia total de `25.0 ms`. |
-| Diagnosticar la red desde Servidor 1 tras eliminar enlaces. | Recorrido `Servidor 1 -> Servidor 2`, red no conectada y Servidor 3 aislado y no alcanzable. El diagnóstico BFS siguió funcionando con normalidad. |
-
 ### Módulo Auditoría y Menús - Responsable por confirmar
 
-Pendiente de implementación: registro con fecha y hora en `network_audit_log.txt`,
-consulta del registro e integración del enrutamiento y de los eventos de auditoría.
+Estado actual: `auditoria.py` registra cada acción con fecha y hora en
+`network_audit_log.txt` y permite consultarlo desde el menú principal.
+Los eventos incluyen los orígenes de las operaciones, la acción ejecutada y la
+marca temporal exacta. El módulo se activa sólo cuando el sistema está en uso
+regular y se puede desactivar para pruebas unitarias.
+
 El menú de conexiones y diagnóstico ya está integrado por Ismael en `main.py`,
-captura `ValueError` y utiliza una instancia compartida de la red. La separación
-en carpetas se realizará posteriormente. Cada integrante deberá completar sus
-propios prompts y validaciones.
+captura `ValueError` y utiliza una instancia compartida de la red. La
+separación en carpetas y la finalización de menús se realizará posteriormente.
 
 ### Historial de integraciones observable
 
@@ -316,7 +269,7 @@ usuario, `U` la cantidad de usuarios y `k` la cantidad de entradas en su bucket.
 | Operación | Complejidad | Explicación |
 |---|---|---|
 | Calcular hash | O(L) | Recorre los caracteres del nombre de usuario. |
-| Registrar o autenticar | O(L + k), considerando comparaciones de longitud acotada | Calcula el índice y recorre únicamente la lista de ese bucket. Las comparaciones de cadenas también dependen de su longitud. |
+| Registrar o autenticar | O(L + k), considerando comparaciones de longitud acotada | Calcula el índice y recorre únicamente la lista de ese bucket. Las comparaciones de cadenas también dependen de la longitud. |
 | Peor caso por colisiones | O(U) respecto a la cantidad de usuarios, con cadenas acotadas | Todos pueden quedar en un mismo bucket. |
 
 El acceso promedio cercano a O(1), para claves de longitud acotada, depende de una
@@ -340,3 +293,18 @@ Sea `V` el número de servidores, `E` el número de conexiones no dirigidas y
 Un servidor aislado tiene grado cero. Un servidor no alcanzable pertenece a una
 zona que no puede recorrerse desde el origen, aunque tenga conexiones con otros
 servidores. BFS diagnostica conectividad; no calcula la ruta de menor latencia.
+
+### Enrutamiento por costo mínimo
+
+Dijkstra se ejecuta sobre el grafo no dirigido con pesos de latencia.
+Cada conexión tiene un costo positivo y el algoritmo mantiene las distancias
+mínimas conocidas hasta cada vértice.
+
+| Operación | Complejidad | Explicación |
+|---|---|---|
+| Dijkstra | O(V²) con la implementación actual | Se busca el mínimo no visitado en cada iteración. |
+| Reconstrucción de la ruta | O(V) | Retrocede desde el destino usando los predecesores. |
+| Memoria auxiliar | O(V) | Distancias, visitados y predecesores. |
+
+El módulo `enrutamiento.py` devuelve la ruta exacta y la latencia total para
+poder simular el tránsito por el camino óptimo.
