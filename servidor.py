@@ -11,6 +11,9 @@ class Servidor:
         self.usuarios = TablaHash(nombre_servidor=nombre)
 
     def crear_nodo(self, nombre, es_carpeta, carpeta_padre="/"):
+        if nombre.strip() == "" or "/" in nombre:
+            return False
+
         padre = self.buscar_por_ruta(carpeta_padre)
 
         if padre is None or not padre.es_carpeta:
@@ -73,13 +76,7 @@ class Servidor:
         if padre is None:
             return False
 
-        nodo_encontrado = None
-
-        for hijo in padre.hijos:
-            nodo_encontrado = hijo.buscar(nombre)
-
-            if nodo_encontrado is not None:
-                break
+        nodo_encontrado = padre.buscar_hijo(nombre)
 
         if nodo_encontrado is None:
             return False
