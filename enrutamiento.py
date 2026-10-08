@@ -16,6 +16,7 @@ from auditoria import registrar_evento
 INFINITO = float("inf")
 
 
+# Recibe listas paralelas de costos y marcas; consulta el mínimo en O(V) sin modificarlas.
 def buscar_minimo_no_visitado(distancias, visitados):
     """
     Devuelve el índice del servidor NO visitado con menor distancia.
@@ -33,6 +34,9 @@ def buscar_minimo_no_visitado(distancias, visitados):
     return mejor_indice
 
 
+# Requiere un índice de origen válido y pesos adecuados para Dijkstra (no negativos).
+# No modifica las adyacencias ni escribe el log: la auditoría se hace en calcular_ruta.
+# La selección lineal del mínimo cuesta O(V² + E) y usa O(V) memoria auxiliar.
 def dijkstra(red, indice_origen):
     """
     Calcula la menor latencia desde indice_origen hacia todos los servidores.
@@ -80,6 +84,8 @@ def dijkstra(red, indice_origen):
     return distancias, predecesores
 
 
+# Recibe predecesores generados por Dijkstra y un índice de destino alcanzable.
+# Devuelve una lista nueva; no modifica los predecesores. Recorre como máximo V nodos.
 def reconstruir_ruta(predecesores, indice_destino):
     """
     Reconstruye la ruta como lista de índices, desde el origen hasta el destino.
@@ -99,6 +105,8 @@ def reconstruir_ruta(predecesores, indice_destino):
     return ruta
 
 
+# Recibe índices válidos y busca entre los vecinos de A en O(grado(A)).
+# Devuelve el peso del enlace A-B o None si no hay conexión directa.
 def buscar_latencia(red, indice_a, indice_b):
     """Devuelve la latencia de la conexión directa entre dos servidores."""
     for vecino, latencia in red.adyacencias[indice_a]:
@@ -107,6 +115,8 @@ def buscar_latencia(red, indice_a, indice_b):
     return None
 
 
+# Coordina validación de nombres, Dijkstra, reconstrucción y auditoría del resultado.
+# No cambia la red; los fallos al registrar el evento se propagan al llamador.
 def calcular_ruta(red, nombre_origen, nombre_destino):
     """
     Calcula la ruta de menor latencia entre dos servidores, dados por nombre.
@@ -192,6 +202,8 @@ def calcular_ruta(red, nombre_origen, nombre_destino):
     return resultado
 
 
+# Presenta en consola el cálculo realizado por calcular_ruta y devuelve su resultado.
+# Es una simulación: no transmite datos por una red física ni mueve archivos.
 def simular_envio_paquete(red, nombre_origen, nombre_destino):
     """
     Simula el envío de un paquete mostrando cada salto y la latencia total.
