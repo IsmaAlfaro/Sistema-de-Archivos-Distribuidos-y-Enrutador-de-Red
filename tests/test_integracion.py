@@ -63,6 +63,55 @@ class PruebasIntegracion(unittest.TestCase):
         self.assertFalse(tabla.autenticar("a", "clave_k"))
         self.assertFalse(tabla.autenticar("inexistente", "clave_a"))
 
+    # Los espacios exteriores no crean otro usuario ni modifican su contraseña.
+    def test_usuario_normalizado_y_contrasena_exacta(self):
+        tabla = TablaHash()
+        self.assertTrue(tabla.registrar_usuario(" Ana Maria ", " clave "))
+        self.assertFalse(tabla.registrar_usuario("Ana Maria", "otra"))
+        self.assertFalse(tabla.registrar_usuario("Ana Maria ", "otra"))
+        self.assertTrue(tabla.autenticar(" Ana Maria ", " clave "))
+        self.assertFalse(tabla.autenticar("Ana Maria", "clave"))
+
+    # Comprueba máscara, retroceso, teclas especiales y Enter sin leer el teclado real.
+    def test_contrasena_con_asteriscos(self):
+        teclas = ["\b", "A", "b", "\b", "ñ", "\xe0", "K", "\x00", "H", "\t", " ", "\r"]
+        salida = io.StringIO()
+        with patch.object(main, "getwch", side_effect=teclas) as teclado, redirect_stdout(salida):
+            resultado = main.leerContrasena("Clave: ")
+        self.assertEqual(resultado, "Añ ")
+        self.assertEqual(teclado.call_count, len(teclas))
+        self.assertEqual(salida.getvalue(), "Clave: **\b \b**\n")
+
+    # Enter vacío termina la lectura y Ctrl+C conserva la interrupción de consola.
+    def test_contrasena_enter_y_cancelacion(self):
+        with patch.object(main, "getwch", return_value="\r"), redirect_stdout(io.StringIO()):
+            self.assertEqual(main.leerContrasena(), "")
+        with patch.object(main, "getwch", side_effect=["x", "\x03"]), redirect_stdout(io.StringIO()):
+            with self.assertRaises(KeyboardInterrupt):
+                main.leerContrasena()
+
+    # Rechaza texto, dígitos no convertibles y números fuera de rango, sin cerrar el menú.
+    def test_selector_de_servidores(self):
+        servidor = Servidor("S")
+        with patch.object(main, "limpiarConsola"), patch.object(main, "pausarConsola"), \
+                patch("builtins.input", side_effect=["abc", "²", "9", "1"]), \
+                redirect_stdout(io.StringIO()):
+            self.assertIs(main.seleccionarServidor([servidor]), servidor)
+
+    # Integra la nueva captura de contraseña con registro, acceso fallido y acceso correcto.
+    def test_menu_autenticacion_con_captura_oculta(self):
+        servidor = Servidor("S")
+        entradas = ["2", " Ana ", "1", "Ana", "1", "Ana ", "3"]
+        with patch.object(main, "limpiarConsola"), patch.object(main, "pausarConsola"), \
+                patch.object(main, "leerContrasena", side_effect=["secreta", "incorrecta", "secreta"]) as claves, \
+                patch.object(main, "menuArchivos") as archivos, \
+                patch("builtins.input", side_effect=entradas), redirect_stdout(io.StringIO()) as salida:
+            main.menuAutenticacion(servidor)
+        self.assertEqual(claves.call_count, 3)
+        archivos.assert_called_once_with(servidor)
+        self.assertIn("Usuario o contraseña incorrectos.", salida.getvalue())
+        self.assertTrue(servidor.usuarios.autenticar("Ana", "secreta"))
+
     # Comprueba append sin salto final previo, UTF-8 y ~ dentro de la descripción.
     def test_auditoria_conserva_historial_y_separadores(self):
         ruta = self.preparar_log()
@@ -130,8 +179,8 @@ class PruebasIntegracion(unittest.TestCase):
     # Ocho operaciones deben volver al menú si falla el log, conservando el estado.
     def test_menus_manejan_fallos_de_auditoria(self):
         casos = [
-            ("login", "menuAutenticacion", ["1", "u", "p", "3"], "tabla_hash.registrar_evento"),
-            ("registro", "menuAutenticacion", ["2", "u", "p", "3"], "tabla_hash.registrar_evento"),
+            ("login", "menuAutenticacion", ["1", "u", "3"], "tabla_hash.registrar_evento"),
+            ("registro", "menuAutenticacion", ["2", "u", "3"], "tabla_hash.registrar_evento"),
             ("carpeta", "menuArchivos", ["1", "docs", "/", "0"], "servidor.registrar_evento"),
             ("archivo", "menuArchivos", ["2", "nuevo.txt", "/", "0"], "servidor.registrar_evento"),
             ("eliminar", "menuArchivos", ["5", "/f", "0"], "servidor.registrar_evento"),
@@ -152,7 +201,7 @@ class PruebasIntegracion(unittest.TestCase):
 
                 # Para comprobar el registro se usa un usuario que todavía no existe.
                 if nombre == "registro":
-                    entradas = ["2", "nuevo", "p", "3"]
+                    entradas = ["2", "nuevo", "3"]
                 conexiones = [lista[:] for lista in red.adyacencias]
                 usuarios = [lista[:] for lista in servidor.usuarios.tabla]
                 hijos = servidor.raiz.hijos[:]
@@ -161,6 +210,7 @@ class PruebasIntegracion(unittest.TestCase):
 
                 with patch.object(main, "limpiarConsola"), \
                         patch.object(main, "pausarConsola"), \
+                        patch.object(main, "leerContrasena", return_value="p"), \
                         patch.object(main, "menuArchivos", wraps=main.menuArchivos) as archivos, \
                         patch("builtins.input", side_effect=entradas), \
                         patch(destino_patch, side_effect=OSError("fallo simulado")) as registrar, \

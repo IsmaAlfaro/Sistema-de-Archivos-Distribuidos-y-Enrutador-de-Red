@@ -14,6 +14,9 @@ diagnóstico, Dijkstra para rutas óptimas y un archivo de auditoría de operaci
 
 - Selección entre tres servidores con archivos y usuarios independientes.
 - Registro e inicio de sesión mediante tabla hash manual con encadenamiento.
+- Normalización de espacios exteriores del usuario al registrar y autenticar.
+- Captura de contraseñas con asteriscos, Retroceso y Enter en la consola de Windows.
+- Selección de servidores con manejo de entradas no numéricas y números fuera de rango.
 - Creación de carpetas y archivos, rechazando nombres vacíos, solo espacios o con `/`.
 - Búsqueda recursiva por nombre y navegación por rutas.
 - Visualización del árbol con indentación.
@@ -38,7 +41,6 @@ BFS no registra un evento actualmente. Su recorrido no es una ruta de envío.
 ### Pendientes conocidos
 
 - Rechazar credenciales vacías y validar el tamaño inicial de la tabla hash.
-- Manejar entradas como `²` en `seleccionarServidor`: `isdigit()` no garantiza que `int()` acepte el texto.
 - Definir el tratamiento de saltos de línea en los datos de auditoría. La lectura admite `~` en la acción, pero no un origen con ese separador ni eventos multilínea.
 - Diferenciar un log vacío de un log cuyos registros fueron todos omitidos por formato inválido.
 - Controlar el factor de carga de la tabla hash y considerar módulo en cada paso del hash para acotar el acumulador.
@@ -59,7 +61,10 @@ BFS no registra un evento actualmente. Su recorrido no es una ruta de envío.
 
 ## Ejecución y pruebas
 
-Requiere **Python 3.10 o superior**. No hay dependencias externas.
+Requiere **Windows y Python 3.10 o superior**. No hay dependencias externas.
+La captura con asteriscos utiliza `msvcrt.getwch`; ejecutar en una terminal real,
+como la terminal integrada de VS Code. La máscara oculta la escritura en pantalla,
+pero no cambia el almacenamiento en memoria de las contraseñas.
 Ejecutar desde la raíz del repositorio:
 
 ```bash
@@ -108,8 +113,11 @@ el historial real del proyecto.
 
 Resultado de la verificación de esta integración: los scripts de red,
 enrutamiento y árbol pasaron; la demostración del hash ejecutó correctamente.
-La suite `tests.test_integracion` pasó sus 7 pruebas, incluyendo subcasos para
-ocho operaciones de menú con fallos simulados de auditoría. Esto cubre los casos
+La suite `tests.test_integracion` incluye 12 pruebas, con subcasos para
+ocho operaciones de menú con fallos simulados de auditoría, captura con asteriscos,
+Retroceso, teclas especiales, normalización de usuarios y selección de servidores.
+Las pruebas simulan tanto `input()` como la captura oculta para no esperar teclado.
+Esto cubre los casos
 descritos, no elimina los pendientes conocidos de validación indicados arriba.
 
 ### Validación manual reportada
@@ -198,6 +206,8 @@ no se atribuyen pruebas manuales no reportadas. La numeración original omitía 
 | `4290ba8` | Integración inicial del menú de red. |
 | `2fd3211`, `6a92be2` | Actualización del README y sus commits. |
 | `8068b6e` | Comentarios, correcciones, optimización de auditoría y menús con match/case. |
+| `77b8d4c` | Unificación de las mejoras de Ismael y Carlos y pruebas de integración. |
+| `a6ea90f` | Normalización del usuario con strip y conversión segura en el selector de servidores. |
 
 Se conservan su validación de latencias finitas, comentarios de funciones, manejo
 de errores de auditoría y menús. La escritura del log ya no lee todo el historial;
@@ -229,6 +239,8 @@ Extractos de la conversación; algunos requieren el contexto de capturas o pasos
 | Plan | `okey actualiza el readme con todo lo nuevo y despues me vas guiando para ir poco a poco con todo lo que hay que arreglar, optimizar o mejorar` | Correcciones aplicadas manualmente y comprobadas por etapas. |
 | Comentarios | `quiero primero que hagas el favor de ponerle comentarios a todo el codigo eso puedes hacerlo tu` (extracto, espaciado normalizado) | IA documentó funciones; se comparó la estructura sintáctica para comprobar que la lógica no cambiara. |
 | Unificación | `tu podrias hacerme el favor de unir lo que recomendaste a mi rama? para despues subirlo al main?` | Integración autorizada de las mejoras de ambas ramas, resolución por archivo y pruebas de regresión. |
+| Contraseñas | `con asteriscos` | Captura manual con getwch, edición con Retroceso y máscara en consola; pruebas actualizadas para simular el teclado. |
+| Publicación | `analisa el mi rama y si ya no hay cambios muy drasticos subela al main` | Revisión contra main y verificación de las pruebas antes de publicar los cambios pendientes. |
 
 </details>
 
@@ -277,6 +289,7 @@ reportadas. Los eventos de autenticación se generan en `TablaHash`, no en BFS.
 | `43f7049`, `b6b317a` | Validaciones y pruebas de Carlos; integración por PR #10. |
 | `a683f82`, `8068b6e` | Avances de Ismael posteriores a la base común `888f9a8`. |
 | `f84ccd8`, `009e9d5` | Documentación posterior al PR #10 en main. |
+| `77b8d4c`, `a6ea90f`, `6e07e43` | Unificación, validaciones posteriores e integración de Ismael-Dev en main mediante PR #11. |
 
 Las tablas de módulos y esta sección identifican los commits revisados. No son
 un registro de todas las operaciones de fetch o push.
@@ -302,7 +315,8 @@ un registro de todas las operaciones de fetch o push.
 | Integrado | Lectura del log con ~ dentro de la acción y omisión de líneas inválidas. |
 | Integrado | Escritura sin lectura completa del historial y manejo de OSError en menús. |
 | Integrado | Hash que considera el orden, pruebas del árbol y una sola clase de grafo oficial. |
-| Pendiente | Credenciales vacías, tamaño de tabla y selector numérico robusto. |
+| Integrado | Usuario normalizado, selector numérico robusto y contraseña con asteriscos en Windows. |
+| Pendiente | Credenciales vacías y tamaño de tabla. |
 | Pendiente | Datos multilínea de auditoría y distinción entre log vacío y log sin entradas válidas. |
 | Pendiente | Factor de carga, acumulador hash acotado, portabilidad y organización por carpetas. |
 

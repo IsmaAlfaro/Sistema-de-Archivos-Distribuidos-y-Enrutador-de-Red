@@ -6,6 +6,7 @@ from datetime import datetime as fechaHora
 from servidor import Servidor
 from grafo_red import GrafoRed
 from enrutamiento import simular_envio_paquete as simularEnvioPaquete
+from msvcrt import getwch
 import auditoria as moduloAuditoria
 
 
@@ -146,6 +147,43 @@ def menuArchivos(servidor):
                 pausarConsola()
 
 
+# Solicita una contraseña mostrando un asterisco por cada carácter.
+# Permite borrar con Retroceso y devuelve el texto original al pulsar Enter.
+# Utiliza la consola de Windows; Ctrl+C interrumpe la captura.
+def leerContrasena(mensaje="Contraseña: "):
+    print(mensaje, end="", flush=True)
+    caracteres = []
+
+    while True:
+        caracter = getwch()
+
+        # Enter termina la captura.
+        if caracter in ("\r", "\n"):
+            print()
+            return "".join(caracteres)
+
+        # Ctrl+C permite interrumpir la operación.
+        if caracter == "\x03":
+            print()
+            raise KeyboardInterrupt
+
+        # Flechas y otras teclas especiales generan una secuencia de dos códigos.
+        if caracter in ("\x00", "\xe0"):
+            getwch()
+            continue
+
+        # Retroceso elimina el último carácter y su asterisco.
+        if caracter == "\b":
+            if caracteres:
+                caracteres.pop()
+                print("\b \b", end="", flush=True)
+            continue
+
+        # Guarda caracteres imprimibles, incluidos espacios.
+        if caracter.isprintable():
+            caracteres.append(caracter)
+            print("*", end="", flush=True)
+
 # Registra o autentica usuarios en la tabla hash del servidor recibido.
 # Maneja fallos de auditoría y abre archivos solo si la autenticación se completa.
 # La opción 3 retorna al menú principal.
@@ -166,7 +204,7 @@ def menuAutenticacion(servidor):
         match opcion:
             case "1":
                 usuario = input("Usuario: ")
-                contraseña = input("Contraseña: ")
+                contraseña = leerContrasena("Contraseña: ")
 
                 try:
                     autenticado = servidor.usuarios.autenticar(
@@ -188,7 +226,7 @@ def menuAutenticacion(servidor):
 
             case "2":
                 usuario = input("Nuevo usuario: ")
-                contraseña = input("Contraseña: ")
+                contraseña = leerContrasena("Contraseña: ")
 
                 try:
                     resultado = servidor.usuarios.registrar_usuario(
