@@ -85,7 +85,7 @@ def validarFecha(fechaTemp):
 
 # Lee el log y devuelve tuplas (origen, acción, fecha_date, fecha_hora_texto).
 # Un archivo vacío devuelve []; uno inexistente lanza FileNotFoundError.
-# Propaga errores de acceso y, actualmente, de formato (IndexError/ValueError).
+# Omite registros de formato inválido con un aviso y propaga errores de acceso.
 def obtenerRegistros():
     if not _ruta_archivo.exists():
         raise FileNotFoundError(

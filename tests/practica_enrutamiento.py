@@ -1,4 +1,4 @@
-# Pruebas de enrutamiento: ejecutar desde la raíz con python practica_grafo.py.
+# Pruebas de enrutamiento: ejecutar python -m tests.practica_enrutamiento desde la raíz.
 # Cada assert comprueba un resultado y detiene el script si no coincide.
 # La auditoría permanece desactivada por defecto al iniciar este proceso.
 from servidor import Servidor

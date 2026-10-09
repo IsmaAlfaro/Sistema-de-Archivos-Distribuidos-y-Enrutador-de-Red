@@ -13,10 +13,14 @@ class Servidor:
         self.usuarios = TablaHash(nombre_servidor=nombre)
 
     # Crea un archivo o carpeta dentro de la ruta indicada (por defecto, la raíz).
+    # Rechaza nombres vacíos, compuestos solo por espacios o que contengan /.
     # Devuelve False si el padre no es una carpeta válida o el nombre ya está en ella.
     # Audita antes de insertar y devuelve True al completar la creación.
     # Un fallo de escritura de auditoría se propaga al código que llama al método.
     def crear_nodo(self, nombre, es_carpeta, carpeta_padre="/"):
+        if nombre.strip() == "" or "/" in nombre:
+            return False
+
         padre = self.buscar_por_ruta(carpeta_padre)
 
         if padre is None or not padre.es_carpeta:
@@ -71,7 +75,7 @@ class Servidor:
     # Obtiene el padre de la ruta, verifica una coincidencia y audita la eliminación.
     # Rechaza la raíz; devuelve False si no encuentra padre/nodo y el resultado de
     # padre.eliminar en caso contrario. Los errores de auditoría se propagan.
-    # Pendiente: la búsqueda por nombre recorre descendientes y puede afectar otra ruta.
+    # Selecciona únicamente al hijo directo y vacía su contenido recursivamente.
     def eliminar_nodo(self, ruta):
         if ruta == "/":
             return False
@@ -85,7 +89,6 @@ class Servidor:
 
         if padre is None:
             return False
-
 
         nodo_encontrado = padre.buscar_hijo(nombre)
 

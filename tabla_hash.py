@@ -11,13 +11,14 @@ class TablaHash:
         self.tabla = [[] for _ in range(tamaño)]
         self.nombre_servidor = nombre_servidor
 
-    # Recibe un nombre de usuario y devuelve suma de códigos Unicode módulo tamaño.
-    # Recorre los caracteres en O(L); el módulo limita el índice al arreglo de buckets.
+    # Hash polinómico de base 7: cada carácter incorpora el orden de los anteriores.
+    # El módulo final limita el índice al arreglo de buckets. El acumulador crece
+    # con la longitud del usuario; aplicar módulo en cada paso es una mejora pendiente.
     def funcion_hash(self, usuario):
         suma = 0
 
         for letra in usuario:
-            suma += ord(letra)
+            suma = suma * 7 + ord(letra)
 
         return suma % self.tamaño
 

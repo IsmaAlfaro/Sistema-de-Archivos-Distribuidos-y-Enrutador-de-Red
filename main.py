@@ -39,9 +39,6 @@ def ingresarFecha():
         print("Fecha inválida. Use el formato dd:mm:aaaa.")
 
 
-# Recibe el Servidor de la sesión y ofrece creación, búsqueda, listado y eliminación.
-# Delega la lógica del árbol en ese objeto y muestra el resultado de cada operación.
-# Termina al cerrar sesión; no devuelve datos ni crea otro servidor.
 # Administra los archivos y carpetas del servidor recibido.
 # Selecciona operaciones con match/case y maneja errores de auditoría.
 # La opción 0 cierra la sesión y retorna al menú de autenticación.
@@ -149,9 +146,6 @@ def menuArchivos(servidor):
                 pausarConsola()
 
 
-# Registra o autentica usuarios en la tabla hash local del Servidor recibido.
-# Un acceso correcto abre el menú de archivos; la opción Volver termina este menú.
-# Los eventos de registro y autenticación se generan dentro de TablaHash.
 # Registra o autentica usuarios en la tabla hash del servidor recibido.
 # Maneja fallos de auditoría y abre archivos solo si la autenticación se completa.
 # La opción 3 retorna al menú principal.
@@ -252,7 +246,7 @@ def seleccionarServidor(servidores):
 
 
 # Recibe la red compartida y permite conectar, desconectar, diagnosticar y enviar.
-# Convierte la latencia a float y muestra los ValueError de las operaciones de red.
+# Convierte la latencia a float y maneja ValueError y fallos de auditoría OSError.
 # Al volver, conserva la instancia recibida y sus conexiones; no devuelve datos.
 def menuRed(red):
     while True:
@@ -453,7 +447,7 @@ def menuAuditoria():
 
 
 
-   # Crea los servidores y la red compartida antes de abrir el menú principal.
+# Crea los servidores y la red compartida antes de abrir el menú principal.
 # Activa la auditoría después de la inicialización.
 # Selecciona con match/case el área del sistema que desea utilizar el usuario.
 def main():
