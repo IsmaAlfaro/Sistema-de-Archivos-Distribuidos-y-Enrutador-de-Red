@@ -232,6 +232,11 @@ def menuAutenticacion(servidor):
                     resultado = servidor.usuarios.registrar_usuario(
                         usuario, contraseña
                     )
+                except ValueError as error:
+                    print(error)
+                    pausarConsola()
+                    continue
+                
                 except OSError as error:
                     print("No se pudo completar el registro del usuario.")
                     print("Error de auditoría:", error)
