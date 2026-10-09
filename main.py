@@ -1,3 +1,5 @@
+# Interfaz de consola: solicita datos y delega las operaciones en los módulos.
+# Requiere Python 3.10 o superior por la selección con match/case del menú de red.
 import os
 from datetime import datetime as fechaHora
 
@@ -10,14 +12,18 @@ import auditoria as moduloAuditoria
 lin = "------------------------------------------"
 
 
+# Limpia la pantalla mediante el comando de Windows cls. No devuelve un valor.
 def limpiarConsola():
     os.system("cls")
 
 
+# Espera Enter para que el usuario pueda leer el resultado antes de limpiar la pantalla.
 def pausarConsola():
     input("\nPresione Enter para continuar...")
 
 
+# Solicita una fecha hasta que sea válida y devuelve su texto en formato dd:mm:aaaa.
+# La comparación con strftime exige el formato completo, incluidos los ceros iniciales.
 def ingresarFecha():
     while True:
         fecha = input("Ingrese la fecha (dd:mm:aaaa): ").strip()
@@ -33,6 +39,9 @@ def ingresarFecha():
         print("Fecha inválida. Use el formato dd:mm:aaaa.")
 
 
+# Administra los archivos y carpetas del servidor recibido.
+# Selecciona operaciones con match/case y maneja errores de auditoría.
+# La opción 0 cierra la sesión y retorna al menú de autenticación.
 def menuArchivos(servidor):
     while True:
         limpiarConsola()
@@ -50,72 +59,96 @@ def menuArchivos(servidor):
 
         opcion = input("Seleccione una opción: ").strip()
 
-        if opcion == "1":
-            nombre = input("Nombre de la carpeta: ")
-            ruta = input("Ruta donde desea crearla: ")
+        match opcion:
+            case "1":
+                nombre = input("Nombre de la carpeta: ")
+                ruta = input("Ruta donde desea crearla: ")
 
-            resultado = servidor.crear_nodo(nombre, True, ruta)
+                try:
+                    resultado = servidor.crear_nodo(nombre, True, ruta)
+                except OSError as error:
+                    print("No se pudo completar la creación de la carpeta.")
+                    print("Error de auditoría:", error)
+                    pausarConsola()
+                    continue
 
-            if resultado:
-                print("Carpeta creada correctamente.")
-            else:
-                print("No se pudo crear la carpeta.")
+                if resultado:
+                    print("Carpeta creada correctamente.")
+                else:
+                    print("No se pudo crear la carpeta.")
 
-            pausarConsola()
+                pausarConsola()
 
-        elif opcion == "2":
-            nombre = input("Nombre del archivo: ")
-            ruta = input("Ruta donde desea crearlo: ")
+            case "2":
+                nombre = input("Nombre del archivo: ")
+                ruta = input("Ruta donde desea crearlo: ")
 
-            resultado = servidor.crear_nodo(nombre, False, ruta)
+                try:
+                    resultado = servidor.crear_nodo(nombre, False, ruta)
+                except OSError as error:
+                    print("No se pudo completar la creación del archivo.")
+                    print("Error de auditoría:", error)
+                    pausarConsola()
+                    continue
 
-            if resultado:
-                print("Archivo creado correctamente.")
-            else:
-                print("No se pudo crear el archivo.")
+                if resultado:
+                    print("Archivo creado correctamente.")
+                else:
+                    print("No se pudo crear el archivo.")
 
-            pausarConsola()
+                pausarConsola()
 
-        elif opcion == "3":
-            nombre = input(
-                "Nombre del archivo o carpeta que desea buscar: "
-            )
+            case "3":
+                nombre = input(
+                    "Nombre del archivo o carpeta que desea buscar: "
+                )
 
-            resultado = servidor.buscar_nodo(nombre)
+                resultado = servidor.buscar_nodo(nombre)
 
-            if resultado is not None:
-                print("Archivo o carpeta encontrado:", resultado.nombre)
-            else:
-                print("Archivo o carpeta no encontrado.")
+                if resultado is not None:
+                    print("Archivo o carpeta encontrado:", resultado.nombre)
+                else:
+                    print("Archivo o carpeta no encontrado.")
 
-            pausarConsola()
+                pausarConsola()
 
-        elif opcion == "4":
-            print("\nEstructura del servidor:")
-            servidor.mostrar_estructura()
-            pausarConsola()
+            case "4":
+                print("\nEstructura del servidor:")
+                servidor.mostrar_estructura()
+                pausarConsola()
 
-        elif opcion == "5":
-            ruta = input("Ruta del archivo o carpeta que desea eliminar: ")
+            case "5":
+                ruta = input(
+                    "Ruta del archivo o carpeta que desea eliminar: "
+                )
 
-            resultado = servidor.eliminar_nodo(ruta)
+                try:
+                    resultado = servidor.eliminar_nodo(ruta)
+                except OSError as error:
+                    print("No se pudo completar la eliminación.")
+                    print("Error de auditoría:", error)
+                    pausarConsola()
+                    continue
 
-            if resultado:
-                print("Archivo o carpeta eliminado correctamente.")
-            else:
-                print("No se pudo eliminar el archivo o carpeta.")
+                if resultado:
+                    print("Archivo o carpeta eliminado correctamente.")
+                else:
+                    print("No se pudo eliminar el archivo o carpeta.")
 
-            pausarConsola()
+                pausarConsola()
 
-        elif opcion == "0":
-            print("Sesión cerrada.")
-            break
+            case "0":
+                print("Sesión cerrada.")
+                break
 
-        else:
-            print("Opción inválida.")
-            pausarConsola()
+            case _:
+                print("Opción inválida.")
+                pausarConsola()
 
 
+# Registra o autentica usuarios en la tabla hash del servidor recibido.
+# Maneja fallos de auditoría y abre archivos solo si la autenticación se completa.
+# La opción 3 retorna al menú principal.
 def menuAutenticacion(servidor):
     while True:
         limpiarConsola()
@@ -130,41 +163,60 @@ def menuAutenticacion(servidor):
 
         opcion = input("Seleccione una opción: ").strip()
 
-        if opcion == "1":
-            usuario = input("Usuario: ")
-            contraseña = input("Contraseña: ")
+        match opcion:
+            case "1":
+                usuario = input("Usuario: ")
+                contraseña = input("Contraseña: ")
 
-            if servidor.usuarios.autenticar(usuario, contraseña):
-                print("Inicio de sesión correcto.")
+                try:
+                    autenticado = servidor.usuarios.autenticar(
+                        usuario, contraseña
+                    )
+                except OSError as error:
+                    print("No se pudo completar el inicio de sesión.")
+                    print("Error de auditoría:", error)
+                    pausarConsola()
+                    continue
+
+                if autenticado:
+                    print("Inicio de sesión correcto.")
+                    pausarConsola()
+                    menuArchivos(servidor)
+                else:
+                    print("Usuario o contraseña incorrectos.")
+                    pausarConsola()
+
+            case "2":
+                usuario = input("Nuevo usuario: ")
+                contraseña = input("Contraseña: ")
+
+                try:
+                    resultado = servidor.usuarios.registrar_usuario(
+                        usuario, contraseña
+                    )
+                except OSError as error:
+                    print("No se pudo completar el registro del usuario.")
+                    print("Error de auditoría:", error)
+                    pausarConsola()
+                    continue
+
+                if resultado:
+                    print("Usuario registrado correctamente.")
+                else:
+                    print("El usuario ya existe.")
+
                 pausarConsola()
-                menuArchivos(servidor)
-            else:
-                print("Usuario o contraseña incorrectos.")
+
+            case "3":
+                break
+
+            case _:
+                print("Opción inválida.")
                 pausarConsola()
 
-        elif opcion == "2":
-            usuario = input("Nuevo usuario: ")
-            contraseña = input("Contraseña: ")
 
-            resultado = servidor.usuarios.registrar_usuario(
-                usuario, contraseña
-            )
-
-            if resultado:
-                print("Usuario registrado correctamente.")
-            else:
-                print("El usuario ya existe.")
-
-            pausarConsola()
-
-        elif opcion == "3":
-            break
-
-        else:
-            print("Opción inválida.")
-            pausarConsola()
-
-
+# Muestra la lista recibida y devuelve el objeto Servidor elegido por su número.
+# Devuelve None al seleccionar 0; las opciones fuera de rango vuelven a solicitarse.
 def seleccionarServidor(servidores):
     while True:
         limpiarConsola()
@@ -183,16 +235,23 @@ def seleccionarServidor(servidores):
         if opcion == "0":
             return None
 
-        if opcion.isdigit():
+        try:
             numero = int(opcion)
+        except ValueError:
+            print("Ingrese un número válido.")
+            pausarConsola()
+            continue
 
-            if 1 <= numero <= len(servidores):
-                return servidores[numero - 1]
+        if 1 <= numero <= len(servidores):
+            return servidores[numero - 1]
 
         print("Opción inválida.")
         pausarConsola()
 
 
+# Recibe la red compartida y permite conectar, desconectar, diagnosticar y enviar.
+# Convierte la latencia a float y maneja ValueError y fallos de auditoría OSError.
+# Al volver, conserva la instancia recibida y sus conexiones; no devuelve datos.
 def menuRed(red):
     while True:
         limpiarConsola()
@@ -214,6 +273,7 @@ def menuRed(red):
         opcion = input("Seleccione una opción: ").strip()
 
         match opcion:
+            # Cada case termina por sí mismo; no requiere break como un switch de C.
             case "1":
                 origen = input(
                     "Nombre del servidor de origen: "
@@ -236,8 +296,12 @@ def menuRed(red):
                         origen, destino, latencia
                     )
                     print(mensaje)
+
                 except ValueError as error:
                     print(error)
+
+                except OSError as error:
+                    print("Error de auditoría:", error)
 
                 pausarConsola()
 
@@ -255,6 +319,9 @@ def menuRed(red):
                 except ValueError as error:
                     print(error)
 
+                except OSError as error:
+                    print("Error de auditoría:", error)
+
                 pausarConsola()
 
             case "3":
@@ -266,6 +333,7 @@ def menuRed(red):
                     resultado = red.diagnosticar_red(origen)
 
                     print("\nOrden de visita BFS:")
+                    # Es un orden de exploración, no necesariamente una ruta entre saltos.
                     print(" -> ".join(resultado["recorrido"]))
 
                     if resultado["red_conectada"]:
@@ -302,12 +370,17 @@ def menuRed(red):
 
                 try:
                     simularEnvioPaquete(red, origen, destino)
+
                 except ValueError as error:
                     print(error)
+
+                except OSError as error:
+                    print("Error de auditoría:", error)
 
                 pausarConsola()
 
             case "0":
+                # Este break termina el while del menú, no solamente el match.
                 print("Volviendo al menú principal...")
                 break
 
@@ -316,6 +389,9 @@ def menuRed(red):
                 pausarConsola()
 
 
+# Consulta el historial completo o filtrado por fecha, sin modificar sus registros.
+# Comprueba si existen los métodos de filtrado y captura errores de acceso al archivo.
+# La opción 0 retorna al menú principal sin devolver datos.
 def menuAuditoria():
     while True:
         limpiarConsola()
@@ -373,6 +449,11 @@ def menuAuditoria():
             pausarConsola()
 
 
+
+
+# Crea los servidores y la red compartida antes de abrir el menú principal.
+# Activa la auditoría después de la inicialización.
+# Selecciona con match/case el área del sistema que desea utilizar el usuario.
 def main():
     moduloAuditoria.configurar_auditoria(False)
 
@@ -402,27 +483,29 @@ def main():
 
         opcion = input("Seleccione una opción: ").strip()
 
-        if opcion == "1":
-            servidor = seleccionarServidor(servidores)
+        match opcion:
+            case "1":
+                servidor = seleccionarServidor(servidores)
 
-            if servidor is not None:
-                menuAutenticacion(servidor)
+                if servidor is not None:
+                    menuAutenticacion(servidor)
 
-        elif opcion == "2":
-            menuRed(red)
+            case "2":
+                menuRed(red)
 
-        elif opcion == "3":
-            menuAuditoria()
+            case "3":
+                menuAuditoria()
 
-        elif opcion == "0":
-            print("Saliendo del sistema...")
-            break
+            case "0":
+                print("Saliendo del sistema...")
+                break
 
-        else:
-            print("Opción inválida.")
-            pausarConsola()
+            case _:
+                print("Opción inválida.")
+                pausarConsola()
 
 
+# Inicia la interfaz solo al ejecutar este archivo, no al importarlo desde pruebas.
 if __name__ == "__main__":
     main()
     

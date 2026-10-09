@@ -1,3 +1,6 @@
+# Pruebas de enrutamiento: ejecutar python -m tests.practica_enrutamiento desde la raíz.
+# Cada assert comprueba un resultado y detiene el script si no coincide.
+# La auditoría permanece desactivada por defecto al iniciar este proceso.
 from servidor import Servidor
 from grafo_red import GrafoRed
 from enrutamiento import (
@@ -5,6 +8,9 @@ from enrutamiento import (
 )
 
 
+# Recibe la cantidad de servidores y tuplas (numero_origen, numero_destino, latencia).
+# Los números empiezan en 1; devuelve un GrafoRed nuevo para aislar cada escenario.
+# Los nombres usados aquí son distintos de los índices internos, que empiezan en 0.
 def construir_red(cantidad, conexiones):
     """Crea una red con 'Servidor 1'...'Servidor N' y las conexiones indicadas."""
     red = GrafoRed()

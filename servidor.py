@@ -1,3 +1,4 @@
+# Agrupa el árbol de directorios y las credenciales independientes de un servidor.
 from nodo_archivo import NodoArchivo
 from tabla_hash import TablaHash
 from auditoria import registrar_evento
@@ -5,11 +6,17 @@ from auditoria import registrar_evento
 
 class Servidor:
 
-    def __init__(self, nombre):  # Constructor
+    # Recibe el nombre, crea la raíz / y una tabla hash asociada a este servidor.
+    def __init__(self, nombre):
         self.nombre = nombre
         self.raiz = NodoArchivo("/", True)
         self.usuarios = TablaHash(nombre_servidor=nombre)
 
+    # Crea un archivo o carpeta dentro de la ruta indicada (por defecto, la raíz).
+    # Rechaza nombres vacíos, compuestos solo por espacios o que contengan /.
+    # Devuelve False si el padre no es una carpeta válida o el nombre ya está en ella.
+    # Audita antes de insertar y devuelve True al completar la creación.
+    # Un fallo de escritura de auditoría se propaga al código que llama al método.
     def crear_nodo(self, nombre, es_carpeta, carpeta_padre="/"):
         if nombre.strip() == "" or "/" in nombre:
             return False
@@ -43,9 +50,12 @@ class Servidor:
         return True
 
 
+    # Busca recursivamente desde la raíz y devuelve el primer nodo con ese nombre o None.
     def buscar_nodo(self, nombre):
          return self.raiz.buscar(nombre)
 
+    # Separa una ruta por / y resuelve cada componente entre los hijos directos.
+    # Devuelve la raíz para /, el nodo encontrado o None si falta algún componente.
     def buscar_por_ruta(self, ruta):
         if ruta == "/":
             return self.raiz
@@ -62,6 +72,10 @@ class Servidor:
         return nodo_actual
 
 
+    # Obtiene el padre de la ruta, verifica una coincidencia y audita la eliminación.
+    # Rechaza la raíz; devuelve False si no encuentra padre/nodo y el resultado de
+    # padre.eliminar en caso contrario. Los errores de auditoría se propagan.
+    # Selecciona únicamente al hijo directo y vacía su contenido recursivamente.
     def eliminar_nodo(self, ruta):
         if ruta == "/":
             return False
@@ -88,6 +102,7 @@ class Servidor:
 
         return padre.eliminar(nombre)
 
+    # Imprime desde la raíz toda la jerarquía del servidor; no devuelve datos.
     def mostrar_estructura(self):
          self.raiz.mostrar_arbol()
         

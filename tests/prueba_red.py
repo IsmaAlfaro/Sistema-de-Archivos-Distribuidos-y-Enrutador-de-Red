@@ -1,3 +1,7 @@
+# Pruebas secuenciales de conexiones y BFS: ejecutar python -m tests.prueba_red.
+# Los bloques comparten la misma red; cada escenario parte del estado del anterior.
+# assert verifica resultados y try/except comprueba los ValueError esperados.
+# La auditoría permanece desactivada por defecto al iniciar este proceso.
 from servidor import Servidor
 from grafo_red import GrafoRed
 
