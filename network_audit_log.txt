@@ -35,3 +35,16 @@ grafo_red~conexión eliminada entre Servidor 1 y Servidor 2 con latencia 10.0 ms
 grafo_red~conexión agregada entre Servidor 2 y Servidor 3 con latencia 15.0 ms~08:10:2026 19:16:21~
 grafo_red~conexión agregada entre Servidor 1 y Servidor 3 con latencia 30.0 ms~08:10:2026 19:16:36~
 enrutamiento~cálculo de ruta de Servidor 1 a Servidor 3: Servidor 1 -> Servidor 3, latencia total 30.0 ms~08:10:2026 19:17:05~
+autenticación~registro exitoso del usuario 'Ismael' en el servidor 'Servidor 1'~09:10:2026 11:14:38~
+autenticación~inicio de sesión exitoso para el usuario 'Ismael' en el servidor 'Servidor 1'~09:10:2026 11:14:48~
+autenticación~registro exitoso del usuario '' en el servidor 'Servidor 1'~09:10:2026 11:18:14~
+autenticación~inicio de sesión fallido para el usuario '1' en el servidor 'Servidor 1'~09:10:2026 11:27:53~
+autenticación~registro exitoso del usuario 'Ana' en el servidor 'Servidor 1'~09:10:2026 11:28:41~
+autenticación~registro exitoso del usuario 'Ana' en el servidor 'Servidor 1'~09:10:2026 11:31:44~
+autenticación~registro exitoso del usuario 'a' en el servidor 'Servidor 1'~09:10:2026 11:40:25~
+autenticación~registro exitoso del usuario 'k' en el servidor 'Servidor 1'~09:10:2026 11:40:38~
+autenticación~inicio de sesión exitoso para el usuario 'a' en el servidor 'Servidor 1'~09:10:2026 11:40:58~
+autenticación~inicio de sesión exitoso para el usuario 'k' en el servidor 'Servidor 1'~09:10:2026 11:41:14~
+autenticación~inicio de sesión fallido para el usuario 'a' en el servidor 'Servidor 1'~09:10:2026 11:41:33~
+autenticación~inicio de sesión fallido para el usuario 'a' en el servidor 'Servidor 1'~09:10:2026 11:42:19~
+autenticación~inicio de sesión exitoso para el usuario 'a' en el servidor 'Servidor 1'~09:10:2026 11:42:29~

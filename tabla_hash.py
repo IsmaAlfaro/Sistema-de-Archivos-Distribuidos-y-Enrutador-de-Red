@@ -4,29 +4,41 @@ from auditoria import registrar_evento
 
 class TablaHash:
 
-    # Crea tamaño buckets independientes y guarda el servidor para identificar el log.
-    # El tamaño previsto es un entero positivo; actualmente no se valida ni redimensiona.
+    # Crea los buckets, valida el tamaño y cuenta los usuarios registrados.
+    # La tabla crece cuando supera el factor de carga máximo.
     def __init__(self, tamaño=10, nombre_servidor=None):
+
+        if type (tamaño) is not int or tamaño <= 0:
+            raise ValueError("El tamaño de la tabla hash debe ser un entero positivo.")
+
         self.tamaño = tamaño
         self.tabla = [[] for _ in range(tamaño)]
         self.nombre_servidor = nombre_servidor
+        self.cantidad = 0
+        self.factor_maximo = 0.75 #Factor de carga máximo permitido antes de redimensionar la tabla hash
 
-    # Hash polinómico de base 7: cada carácter incorpora el orden de los anteriores.
-    # El módulo final limita el índice al arreglo de buckets. El acumulador crece
-    # con la longitud del usuario; aplicar módulo en cada paso es una mejora pendiente.
+    # Hash polinómico de base 7 que considera el orden de los caracteres.
+    # Aplica el módulo en cada paso para mantener acotado el acumulador.
     def funcion_hash(self, usuario):
         suma = 0
 
         for letra in usuario:
-            suma = suma * 7 + ord(letra)
+            suma = (suma * 7 + ord(letra)) % self.tamaño
 
-        return suma % self.tamaño
+        return suma 
 
     # Busca duplicados solo en el bucket correspondiente al nombre recibido.
     # Devuelve False si el usuario existe; audita, guarda (usuario, contraseña) y
     # devuelve True si es nuevo. Un error de auditoría interrumpe antes de insertar.
     def registrar_usuario(self, usuario, contraseña):
         usuario = usuario.strip()
+
+        if not usuario:
+            raise ValueError("El nombre de usuario no puede estar vacío.")
+
+        if not contraseña.strip():
+            raise ValueError("La contraseña no puede estar vacía ni contener solo espacios.")
+
         indice = self.funcion_hash(usuario)
 
         for usuario_guardado, contraseña_guardada in self.tabla[indice]:
@@ -44,11 +56,16 @@ class TablaHash:
         )
 
         self.tabla[indice].append((usuario, contraseña))
+        self.cantidad += 1
+
+        factor_actual = self.cantidad / self.tamaño
+        if factor_actual > self.factor_maximo:
+            self.redimensionar()
+
         return True
 
     # Compara las credenciales recibidas con las entradas del bucket calculado.
-    # Devuelve True si coinciden o False en otro caso y audita ambos resultados
-    # sin incluir la contraseña. Los errores al escribir el log se propagan.
+    # Devuelve True si coinciden o False en otro caso y audita ambos resultados.
     def autenticar(self, usuario, contraseña):
         usuario = usuario.strip()
         indice = self.funcion_hash(usuario)
@@ -75,3 +92,15 @@ class TablaHash:
 
         return False
         
+    # Duplica las posiciones y redistribuye todas las credenciales.
+    # Conserva la cantidad de usuarios y no genera nuevos eventos de registro.
+    def redimensionar(self):
+        tabla_anterior = self.tabla
+
+        self.tamaño *= 2
+        self.tabla = [[] for _ in range(self.tamaño)]
+
+        for lista_usuarios in tabla_anterior:
+            for usuario, contraseña in lista_usuarios:
+                nuevo_indice = self.funcion_hash(usuario)
+                self.tabla[nuevo_indice].append((usuario, contraseña))

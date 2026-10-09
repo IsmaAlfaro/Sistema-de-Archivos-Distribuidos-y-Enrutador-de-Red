@@ -167,7 +167,7 @@ def leerRegistro():
     registrosTemp = obtenerRegistros()
 
     if not registrosTemp:
-        print("Registro Vacío! No hay datos registrados.")
+        print("No hay registros válidos para mostrar.")
         return False
 
     imprimirRegistros(registrosTemp)
@@ -181,7 +181,7 @@ def leerRegistroDesde(fecha):
     registrosTemp = obtenerRegistros()
 
     if not registrosTemp:
-        print("Registro Vacío! No hay datos registrados.")
+        print("No hay registros válidos para mostrar.")
         return False
 
     registrosFiltradosTemp = [
@@ -205,7 +205,7 @@ def leerRegistroFecha(fecha):
     registrosTemp = obtenerRegistros()
 
     if not registrosTemp:
-        print("Registro Vacío! No hay datos registrados.")
+        print("No hay registros válidos para mostrar.")
         return False
 
     registrosFiltradosTemp = [
