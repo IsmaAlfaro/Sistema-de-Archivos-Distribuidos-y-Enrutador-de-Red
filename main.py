@@ -235,11 +235,15 @@ def seleccionarServidor(servidores):
         if opcion == "0":
             return None
 
-        if opcion.isdigit():
+        try:
             numero = int(opcion)
+        except ValueError:
+            print("Ingrese un número válido.")
+            pausarConsola()
+            continue
 
-            if 1 <= numero <= len(servidores):
-                return servidores[numero - 1]
+        if 1 <= numero <= len(servidores):
+            return servidores[numero - 1]
 
         print("Opción inválida.")
         pausarConsola()

@@ -26,6 +26,7 @@ class TablaHash:
     # Devuelve False si el usuario existe; audita, guarda (usuario, contraseña) y
     # devuelve True si es nuevo. Un error de auditoría interrumpe antes de insertar.
     def registrar_usuario(self, usuario, contraseña):
+        usuario = usuario.strip()
         indice = self.funcion_hash(usuario)
 
         for usuario_guardado, contraseña_guardada in self.tabla[indice]:
@@ -49,6 +50,7 @@ class TablaHash:
     # Devuelve True si coinciden o False en otro caso y audita ambos resultados
     # sin incluir la contraseña. Los errores al escribir el log se propagan.
     def autenticar(self, usuario, contraseña):
+        usuario = usuario.strip()
         indice = self.funcion_hash(usuario)
 
         if self.nombre_servidor is None:

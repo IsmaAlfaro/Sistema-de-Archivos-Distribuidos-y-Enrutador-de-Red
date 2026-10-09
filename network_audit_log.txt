@@ -18,3 +18,20 @@ autenticación~inicio de sesión fallido para el usuario 'Ismael' en el servidor
 autenticación~registro exitoso del usuario 'Ismael' en el servidor 'Servidor 1'~08:10:2026 12:01:01~
 autenticación~inicio de sesión fallido para el usuario 'Ismael ' en el servidor 'Servidor 2'~08:10:2026 12:02:17~
 autenticación~inicio de sesión fallido para el usuario 'Ismael ' en el servidor 'Servidor 3'~08:10:2026 12:02:33~
+autenticación~inicio de sesión fallido para el usuario 'Prueba Manual' en el servidor 'Servidor 1'~08:10:2026 19:02:47~
+autenticación~registro exitoso del usuario 'Prueba Manual' en el servidor 'Servidor 1'~08:10:2026 19:03:19~
+autenticación~inicio de sesión exitoso para el usuario 'Prueba Manual' en el servidor 'Servidor 1'~08:10:2026 19:04:07~
+autenticación~registro exitoso del usuario 'Prueba Manual ' en el servidor 'Servidor 1'~08:10:2026 19:04:31~
+autenticación~inicio de sesión fallido para el usuario 'Prueba Manual' en el servidor 'Servidor 1'~08:10:2026 19:06:06~
+autenticación~inicio de sesión exitoso para el usuario 'Prueba Manual ' en el servidor 'Servidor 1'~08:10:2026 19:06:22~
+servidor~creación de carpeta '/Documento' en Servidor 1~08:10:2026 19:06:52~
+servidor~creación de carpeta '/Documento/Tareas' en Servidor 1~08:10:2026 19:07:13~
+servidor~creación de archivo '/Documento/Tareas/nota.txt' en Servidor 1~08:10:2026 19:07:53~
+servidor~creación de archivo '/Documento/nota.txt' en Servidor 1~08:10:2026 19:08:50~
+servidor~eliminación de nodo '/Documento/nota.txt' en Servidor 1~08:10:2026 19:09:46~
+servidor~eliminación de nodo '/Documento' en Servidor 1~08:10:2026 19:10:13~
+grafo_red~conexión agregada entre Servidor 1 y Servidor 2 con latencia 10.0 ms~08:10:2026 19:12:48~
+grafo_red~conexión eliminada entre Servidor 1 y Servidor 2 con latencia 10.0 ms~08:10:2026 19:15:59~
+grafo_red~conexión agregada entre Servidor 2 y Servidor 3 con latencia 15.0 ms~08:10:2026 19:16:21~
+grafo_red~conexión agregada entre Servidor 1 y Servidor 3 con latencia 30.0 ms~08:10:2026 19:16:36~
+enrutamiento~cálculo de ruta de Servidor 1 a Servidor 3: Servidor 1 -> Servidor 3, latencia total 30.0 ms~08:10:2026 19:17:05~
