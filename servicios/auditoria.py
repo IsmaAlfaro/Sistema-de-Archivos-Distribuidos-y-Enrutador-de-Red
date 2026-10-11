@@ -4,15 +4,15 @@ from datetime import datetime
 from pathlib import Path
 
 
-_RUTA_ARCHIVO_PREDETERMINADA = Path(__file__).resolve().with_name(
-    "network_audit_log.txt"
+_RUTA_ARCHIVO_PREDETERMINADA = (
+    Path(__file__).resolve().parent.parent / "datos" / "network_audit_log.txt"
 )
 _ruta_archivo = _RUTA_ARCHIVO_PREDETERMINADA
 _auditoria_activa = False  # main() la activa; los scripts de prueba parten con ella desactivada.
 
 
 # Activa/desactiva el registro y permite indicar una ruta alternativa para pruebas.
-# Si ruta_archivo es None, restablece la ruta predeterminada junto a este módulo.
+# Si ruta_archivo es None, restablece la ruta predeterminada en datos/.
 # Modifica la configuración global; no crea el archivo ni devuelve datos.
 def configurar_auditoria(activa, ruta_archivo=None):
     global _auditoria_activa, _ruta_archivo

@@ -1,7 +1,7 @@
 # Grafo principal de la aplicación: ponderado, no dirigido y con listas de adyacencia.
 
 from math import isfinite 
-from auditoria import registrar_evento
+from servicios.auditoria import registrar_evento
 
 
 class GrafoRed:

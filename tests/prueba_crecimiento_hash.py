@@ -1,5 +1,5 @@
-from auditoria import configurar_auditoria
-from tabla_hash import TablaHash
+from servicios.auditoria import configurar_auditoria
+from estructuras.tabla_hash import TablaHash
 
 
 configurar_auditoria(False)

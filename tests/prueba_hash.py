@@ -1,5 +1,5 @@
 
-from tabla_hash import TablaHash
+from estructuras.tabla_hash import TablaHash
 
 t = TablaHash()
 print([t.funcion_hash(x) for x in ["ana", "naa", "aan"]])

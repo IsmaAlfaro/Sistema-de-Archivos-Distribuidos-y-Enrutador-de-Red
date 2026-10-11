@@ -14,6 +14,7 @@ diagnóstico, Dijkstra para rutas óptimas y un archivo de auditoría de operaci
 
 - Selección entre tres servidores con archivos y usuarios independientes.
 - Registro e inicio de sesión mediante tabla hash manual con encadenamiento.
+- Rechazo de credenciales vacías y tamaño inicial inválido; crecimiento de la tabla al superar un factor de carga de 0.75.
 - Normalización de espacios exteriores del usuario al registrar y autenticar.
 - Captura de contraseñas con asteriscos, Retroceso y Enter en la consola de Windows.
 - Selección de servidores con manejo de entradas no numéricas y números fuera de rango.
@@ -31,21 +32,19 @@ diagnóstico, Dijkstra para rutas óptimas y un archivo de auditoría de operaci
 - Menús principal, archivos, autenticación y red con `match/case`.
 
 `main()` crea una sola red con los mismos objetos `Servidor` utilizados por los
-menús de archivos y autenticación. La pasa a `menuRed(red)` sin reconstruirla al
-entrar o salir. Usuarios, nodos y conexiones se mantienen en memoria durante la
-ejecución; el historial de auditoría persiste en `network_audit_log.txt`.
+menús de archivos y autenticación. Los entrega a `menuPrincipal(servidores, red)`,
+que delega en los menús de `menus/` sin reconstruirlos al entrar o salir.
+Usuarios, nodos y conexiones se mantienen en memoria durante la ejecución;
+el historial de auditoría persiste en `datos/network_audit_log.txt`.
 
 La auditoría se activa después de crear los servidores iniciales. El diagnóstico
 BFS no registra un evento actualmente. Su recorrido no es una ruta de envío.
 
 ### Pendientes conocidos
 
-- Rechazar credenciales vacías y validar el tamaño inicial de la tabla hash.
 - Definir el tratamiento de saltos de línea en los datos de auditoría. La lectura admite `~` en la acción, pero no un origen con ese separador ni eventos multilínea.
 - Diferenciar un log vacío de un log cuyos registros fueron todos omitidos por formato inválido.
-- Controlar el factor de carga de la tabla hash y considerar módulo en cada paso del hash para acotar el acumulador.
 - Reutilizar validación de fechas, simplificar consultas dinámicas de funciones y mejorar portabilidad de la limpieza de consola (`cls`).
-- Separar menús por carpetas después de estabilizar la integración.
 - Completar las bitácoras de IA de cada integrante y revisar las ampliaciones semanales del docente.
 
 ## Estructuras y técnicas implementadas
@@ -77,12 +76,13 @@ Pruebas disponibles:
 python -m tests.prueba_red
 python -m tests.practica_enrutamiento
 python -m tests.prueba_arbol
-python prueba_hash.py
+python -m tests.prueba_hash
+python -m tests.prueba_crecimiento_hash
 python -m unittest tests.test_integracion -v
 ```
 
 Las tres primeras son scripts con `assert`; ejecutarlas sin `-O`, que desactiva
-las aserciones. `prueba_hash.py` es una demostración por consola; la suite de
+las aserciones. `tests/prueba_hash.py` es una demostración por consola; la suite de
 integración añade comprobaciones automatizadas del hash y de los módulos combinados.
 La prueba de enrutamiento se movió de `practica_grafo.py` a
 `tests/practica_enrutamiento.py`; no existe `tests/prueba_enrutamiento.py`.
@@ -113,10 +113,12 @@ el historial real del proyecto.
 
 Resultado de la verificación de esta integración: los scripts de red,
 enrutamiento y árbol pasaron; la demostración del hash ejecutó correctamente.
-La suite `tests.test_integracion` incluye 12 pruebas, con subcasos para
+La suite `tests.test_integracion` incluye 14 pruebas, con subcasos para
 ocho operaciones de menú con fallos simulados de auditoría, captura con asteriscos,
 Retroceso, teclas especiales, normalización de usuarios y selección de servidores.
 Las pruebas simulan tanto `input()` como la captura oculta para no esperar teclado.
+También verifican la navegación desde `main()` con los mismos servidores y red,
+y la ubicación del historial en `datos/`.
 Esto cubre los casos
 descritos, no elimina los pendientes conocidos de validación indicados arriba.
 
@@ -133,28 +135,48 @@ descritos, no elimina los pendientes conocidos de validación indicados arriba.
 ## Estructura de módulos
 
 ```text
-main.py                    Menús y construcción de los componentes compartidos.
-servidor.py                Árbol y usuarios locales de cada servidor.
-nodo_archivo.py            Nodos, búsqueda, visualización y vaciado recursivo.
-tabla_hash.py              Hash manual, colisiones, registro y autenticación.
-grafo_red.py               Única implementación oficial del grafo y BFS.
-enrutamiento.py            Dijkstra, reconstrucción y simulación de envío.
-auditoria.py               Escritura del log, lectura y filtros por fecha.
-prueba_hash.py             Demostración de distribución y autenticación.
+main.py                    Punto de entrada y construcción de componentes.
+estructuras/
+    __init__.py            Paquete de estructuras de datos.
+    servidor.py            Árbol y usuarios locales de cada servidor.
+    nodo_archivo.py        Nodos, búsqueda y eliminación recursiva.
+    tabla_hash.py          Hash, colisiones, crecimiento y autenticación.
+    grafo_red.py           Grafo ponderado y diagnóstico BFS.
+servicios/
+    __init__.py            Paquete de servicios.
+    enrutamiento.py        Dijkstra y simulación de envío.
+    auditoria.py           Escritura, lectura y filtros del historial.
+menus/
+    __init__.py            Paquete de interfaz de consola.
+    principal.py           Navegación entre las áreas del sistema.
+    servidores.py          Selección de servidor.
+    autenticacion.py       Registro e inicio de sesión.
+    archivos.py            Operaciones sobre archivos y carpetas.
+    red.py                 Conexiones, diagnóstico y envío.
+    auditoria.py           Consulta del historial.
+    consola.py             Limpieza, pausa, fechas y captura de contraseñas.
+datos/
+    network_audit_log.txt   Historial persistente de auditoría.
 tests/
     __init__.py            Paquete de pruebas.
     prueba_red.py          Conexiones y diagnóstico.
     practica_enrutamiento.py  Pruebas de rutas y envío.
     prueba_arbol.py        Rutas, cascada y nombres inválidos.
+    prueba_hash.py         Demostración de distribución y autenticación.
+    prueba_crecimiento_hash.py  Crecimiento y conservación de credenciales.
     test_integracion.py    Regresiones de la combinación de ramas.
 .gitignore                 Exclusión de cachés de Python.
 README.md                  Documentación y bitácora.
-network_audit_log.txt       Historial de auditoría de la ejecución interactiva.
 ```
 
 La implementación alternativa `grafo.py` se retiró siguiendo el cambio de Carlos;
-no era utilizada por `main.py` ni por Dijkstra. La carpeta local `menus/` sigue
-reservada para una organización posterior; Git no registra carpetas vacías.
+no era utilizada por `main.py` ni por Dijkstra. Los menús ahora están separados
+en `menus/`, las estructuras en `estructuras/` y los servicios en `servicios/`.
+Las importaciones usan esos paquetes; por ejemplo,
+`from estructuras.servidor import Servidor`.
+Ejecutar `python main.py` y las pruebas como módulos desde la raíz del repositorio.
+La ruta del log se calcula desde la ubicación de `servicios/auditoria.py`,
+por lo que no depende del directorio de trabajo de la terminal.
 
 ## Bitácora de desarrollo
 
@@ -316,9 +338,11 @@ un registro de todas las operaciones de fetch o push.
 | Integrado | Escritura sin lectura completa del historial y manejo de OSError en menús. |
 | Integrado | Hash que considera el orden, pruebas del árbol y una sola clase de grafo oficial. |
 | Integrado | Usuario normalizado, selector numérico robusto y contraseña con asteriscos en Windows. |
-| Pendiente | Credenciales vacías y tamaño de tabla. |
+| Integrado | Validación de credenciales vacías, tamaño de tabla, factor de carga y redimensionamiento. |
 | Pendiente | Datos multilínea de auditoría y distinción entre log vacío y log sin entradas válidas. |
-| Pendiente | Factor de carga, acumulador hash acotado, portabilidad y organización por carpetas. |
+| Integrado | Organización en estructuras, servicios, menús, datos y pruebas. |
+| Integrado | Acumulador hash acotado mediante módulo en cada paso. |
+| Pendiente | Portabilidad de la interfaz de consola. |
 
 ## Complejidad de las estructuras y algoritmos
 
@@ -337,14 +361,15 @@ pruebas de cascada usan referencias débiles para comprobar esa condición.
 
 ### Tabla hash
 
-La fórmula acumula `suma = suma * 7 + ord(letra)` y devuelve `suma % tamaño`.
-Realiza L iteraciones para un usuario de longitud L. Como el módulo se aplica
-al final, el entero crece; para claves muy largas el costo aritmético no es
-constante. Aplicarlo en cada paso es una optimización pendiente equivalente.
+La fórmula acumula `suma = (suma * 7 + ord(letra)) % tamaño`.
+Realiza L iteraciones para un usuario de longitud L y mantiene el acumulador
+acotado al aplicar el módulo en cada paso.
 
 Registrar y autenticar recorren el bucket calculado. Para cadenas acotadas y
 buena distribución el acceso puede ser cercano a O(1) promedio; en el peor caso
-se recorren U usuarios. Hay 10 buckets por defecto y no existe redimensionamiento.
+se recorren U usuarios. Hay 10 buckets por defecto; al superar un factor de carga
+de 0.75 se duplica la capacidad y se redistribuyen las credenciales. Ese crecimiento
+requiere recalcular los hashes de todos los usuarios almacenados.
 
 ### Grafo, BFS y Dijkstra
 
