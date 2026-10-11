@@ -1,7 +1,7 @@
 import gc
 import weakref
 
-from servidor import Servidor
+from estructuras.servidor import Servidor
 
 # 1. Mismo nombre en otra rama: solo se borra el de la ruta indicada.
 s = Servidor("S")

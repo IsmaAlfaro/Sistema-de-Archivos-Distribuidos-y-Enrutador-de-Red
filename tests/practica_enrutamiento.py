@@ -1,9 +1,9 @@
 # Pruebas de enrutamiento: ejecutar python -m tests.practica_enrutamiento desde la raíz.
 # Cada assert comprueba un resultado y detiene el script si no coincide.
 # La auditoría permanece desactivada por defecto al iniciar este proceso.
-from servidor import Servidor
-from grafo_red import GrafoRed
-from enrutamiento import (
+from estructuras.servidor import Servidor
+from estructuras.grafo_red import GrafoRed
+from servicios.enrutamiento import (
     dijkstra, reconstruir_ruta, calcular_ruta, simular_envio_paquete, INFINITO
 )
 

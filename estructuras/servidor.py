@@ -1,7 +1,7 @@
 # Agrupa el árbol de directorios y las credenciales independientes de un servidor.
-from nodo_archivo import NodoArchivo
-from tabla_hash import TablaHash
-from auditoria import registrar_evento
+from estructuras.nodo_archivo import NodoArchivo
+from estructuras.tabla_hash import TablaHash
+from servicios.auditoria import registrar_evento
 
 
 class Servidor:

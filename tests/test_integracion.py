@@ -8,11 +8,12 @@ from datetime import datetime
 from pathlib import Path
 from unittest.mock import patch
 
-import auditoria
+from servicios import auditoria
 import main
-from grafo_red import GrafoRed
-from servidor import Servidor
-from tabla_hash import TablaHash
+from menus import archivos, autenticacion, consola, principal, red as menu_red, servidores
+from estructuras.grafo_red import GrafoRed
+from estructuras.servidor import Servidor
+from estructuras.tabla_hash import TablaHash
 
 
 class PruebasIntegracion(unittest.TestCase):
@@ -33,6 +34,40 @@ class PruebasIntegracion(unittest.TestCase):
         auditoria.configurar_auditoria(True, ruta)
         return ruta
 
+    # Recorre el punto de entrada y comprueba que los menús comparten el estado.
+    def test_main_comparte_servidores_y_red_entre_menus(self):
+        redes = []
+
+        def administrar(red):
+            redes.append(red)
+            if len(redes) == 1:
+                red.agregar_conexion("Servidor 1", "Servidor 2", 10)
+            else:
+                self.assertIs(red, redes[0])
+                self.assertEqual(red.adyacencias[0], [(1, 10)])
+
+        def seleccionar(lista):
+            self.assertTrue(all(a is b for a, b in zip(lista, redes[0].servidores)))
+            return lista[0]
+
+        # Evita activar el historial real durante el arranque de prueba.
+        with patch.object(main.auditoria, "configurar_auditoria"), \
+                patch.object(principal, "limpiarConsola"), \
+                patch.object(principal, "menuRed", side_effect=administrar), \
+                patch.object(principal, "seleccionarServidor", side_effect=seleccionar), \
+                patch.object(principal, "menuAutenticacion") as autenticar, \
+                patch.object(principal, "menuAuditoria") as consultar, \
+                patch("builtins.input", side_effect=["2", "1", "2", "3", "0"]), \
+                redirect_stdout(io.StringIO()):
+            main.main()
+        self.assertEqual(len(redes), 2)
+        autenticar.assert_called_once_with(redes[0].servidores[0])
+        consultar.assert_called_once_with()
+
+    def test_ruta_predeterminada_del_log_es_independiente_del_directorio_actual(self):
+        esperada = Path(__file__).resolve().parent.parent / "datos" / "network_audit_log.txt"
+        self.assertEqual(auditoria._RUTA_ARCHIVO_PREDETERMINADA, esperada)
+
     # Las entradas no finitas se rechazan sin insertar enlaces ni registrar eventos.
     def test_latencias_invalidas_no_modifican_red(self):
         red = GrafoRed()
@@ -41,7 +76,7 @@ class PruebasIntegracion(unittest.TestCase):
 
         for latencia in (float("nan"), float("inf"), -float("inf"), 0, -5):
             with self.subTest(latencia=latencia):
-                with patch("grafo_red.registrar_evento") as registrar:
+                with patch("estructuras.grafo_red.registrar_evento") as registrar:
                     with self.assertRaises(ValueError):
                         red.agregar_conexion("A", "B", latencia)
                     registrar.assert_not_called()
@@ -76,37 +111,37 @@ class PruebasIntegracion(unittest.TestCase):
     def test_contrasena_con_asteriscos(self):
         teclas = ["\b", "A", "b", "\b", "ñ", "\xe0", "K", "\x00", "H", "\t", " ", "\r"]
         salida = io.StringIO()
-        with patch.object(main, "getwch", side_effect=teclas) as teclado, redirect_stdout(salida):
-            resultado = main.leerContrasena("Clave: ")
+        with patch.object(consola, "getwch", side_effect=teclas) as teclado, redirect_stdout(salida):
+            resultado = consola.leerContrasena("Clave: ")
         self.assertEqual(resultado, "Añ ")
         self.assertEqual(teclado.call_count, len(teclas))
         self.assertEqual(salida.getvalue(), "Clave: **\b \b**\n")
 
     # Enter vacío termina la lectura y Ctrl+C conserva la interrupción de consola.
     def test_contrasena_enter_y_cancelacion(self):
-        with patch.object(main, "getwch", return_value="\r"), redirect_stdout(io.StringIO()):
-            self.assertEqual(main.leerContrasena(), "")
-        with patch.object(main, "getwch", side_effect=["x", "\x03"]), redirect_stdout(io.StringIO()):
+        with patch.object(consola, "getwch", return_value="\r"), redirect_stdout(io.StringIO()):
+            self.assertEqual(consola.leerContrasena(), "")
+        with patch.object(consola, "getwch", side_effect=["x", "\x03"]), redirect_stdout(io.StringIO()):
             with self.assertRaises(KeyboardInterrupt):
-                main.leerContrasena()
+                consola.leerContrasena()
 
     # Rechaza texto, dígitos no convertibles y números fuera de rango, sin cerrar el menú.
     def test_selector_de_servidores(self):
         servidor = Servidor("S")
-        with patch.object(main, "limpiarConsola"), patch.object(main, "pausarConsola"), \
+        with patch.object(servidores, "limpiarConsola"), patch.object(servidores, "pausarConsola"), \
                 patch("builtins.input", side_effect=["abc", "²", "9", "1"]), \
                 redirect_stdout(io.StringIO()):
-            self.assertIs(main.seleccionarServidor([servidor]), servidor)
+            self.assertIs(servidores.seleccionarServidor([servidor]), servidor)
 
     # Integra la nueva captura de contraseña con registro, acceso fallido y acceso correcto.
     def test_menu_autenticacion_con_captura_oculta(self):
         servidor = Servidor("S")
         entradas = ["2", " Ana ", "1", "Ana", "1", "Ana ", "3"]
-        with patch.object(main, "limpiarConsola"), patch.object(main, "pausarConsola"), \
-                patch.object(main, "leerContrasena", side_effect=["secreta", "incorrecta", "secreta"]) as claves, \
-                patch.object(main, "menuArchivos") as archivos, \
+        with patch.object(autenticacion, "limpiarConsola"), patch.object(autenticacion, "pausarConsola"), \
+                patch.object(autenticacion, "leerContrasena", side_effect=["secreta", "incorrecta", "secreta"]) as claves, \
+                patch.object(autenticacion, "menuArchivos") as archivos, \
                 patch("builtins.input", side_effect=entradas), redirect_stdout(io.StringIO()) as salida:
-            main.menuAutenticacion(servidor)
+            autenticacion.menuAutenticacion(servidor)
         self.assertEqual(claves.call_count, 3)
         archivos.assert_called_once_with(servidor)
         self.assertIn("Usuario o contraseña incorrectos.", salida.getvalue())
@@ -146,7 +181,7 @@ class PruebasIntegracion(unittest.TestCase):
     # Los filtros incluyen el día solicitado y respetan los límites entre fechas.
     def test_filtros_de_auditoria(self):
         self.preparar_log()
-        with patch("auditoria.datetime", wraps=datetime) as reloj:
+        with patch("servicios.auditoria.datetime", wraps=datetime) as reloj:
             for dia in (6, 7, 8):
                 reloj.now.return_value = datetime(2026, 10, dia, 12, 0)
                 auditoria.registrar_evento("prueba", f"evento_dia_{dia}")
@@ -179,14 +214,14 @@ class PruebasIntegracion(unittest.TestCase):
     # Ocho operaciones deben volver al menú si falla el log, conservando el estado.
     def test_menus_manejan_fallos_de_auditoria(self):
         casos = [
-            ("login", "menuAutenticacion", ["1", "u", "3"], "tabla_hash.registrar_evento"),
-            ("registro", "menuAutenticacion", ["2", "u", "3"], "tabla_hash.registrar_evento"),
-            ("carpeta", "menuArchivos", ["1", "docs", "/", "0"], "servidor.registrar_evento"),
-            ("archivo", "menuArchivos", ["2", "nuevo.txt", "/", "0"], "servidor.registrar_evento"),
-            ("eliminar", "menuArchivos", ["5", "/f", "0"], "servidor.registrar_evento"),
-            ("conectar", "menuRed", ["1", "A", "B", "10", "0"], "grafo_red.registrar_evento"),
-            ("desconectar", "menuRed", ["2", "A", "B", "0"], "grafo_red.registrar_evento"),
-            ("enviar", "menuRed", ["4", "A", "B", "0"], "enrutamiento.registrar_evento"),
+            ("login", "menuAutenticacion", ["1", "u", "3"], "estructuras.tabla_hash.registrar_evento"),
+            ("registro", "menuAutenticacion", ["2", "u", "3"], "estructuras.tabla_hash.registrar_evento"),
+            ("carpeta", "menuArchivos", ["1", "docs", "/", "0"], "estructuras.servidor.registrar_evento"),
+            ("archivo", "menuArchivos", ["2", "nuevo.txt", "/", "0"], "estructuras.servidor.registrar_evento"),
+            ("eliminar", "menuArchivos", ["5", "/f", "0"], "estructuras.servidor.registrar_evento"),
+            ("conectar", "menuRed", ["1", "A", "B", "10", "0"], "estructuras.grafo_red.registrar_evento"),
+            ("desconectar", "menuRed", ["2", "A", "B", "0"], "estructuras.grafo_red.registrar_evento"),
+            ("enviar", "menuRed", ["4", "A", "B", "0"], "servicios.enrutamiento.registrar_evento"),
         ]
         for nombre, menu, entradas, destino_patch in casos:
             with self.subTest(operacion=nombre):
@@ -208,17 +243,22 @@ class PruebasIntegracion(unittest.TestCase):
                 argumento = red if menu == "menuRed" else servidor
                 salida = io.StringIO()
 
-                with patch.object(main, "limpiarConsola"), \
-                        patch.object(main, "pausarConsola"), \
-                        patch.object(main, "leerContrasena", return_value="p"), \
-                        patch.object(main, "menuArchivos", wraps=main.menuArchivos) as archivos, \
+                modulo_menu = {
+                    "menuAutenticacion": autenticacion,
+                    "menuArchivos": archivos,
+                    "menuRed": menu_red,
+                }[menu]
+                with patch.object(modulo_menu, "limpiarConsola"), \
+                        patch.object(modulo_menu, "pausarConsola"), \
+                        patch.object(autenticacion, "leerContrasena", return_value="p"), \
+                        patch.object(autenticacion, "menuArchivos", wraps=archivos.menuArchivos) as abrir_archivos, \
                         patch("builtins.input", side_effect=entradas), \
                         patch(destino_patch, side_effect=OSError("fallo simulado")) as registrar, \
                         redirect_stdout(salida):
-                    getattr(main, menu)(argumento)
+                    getattr(modulo_menu, menu)(argumento)
                     registrar.assert_called_once()
                     if menu == "menuAutenticacion":
-                        archivos.assert_not_called()
+                        abrir_archivos.assert_not_called()
 
                 self.assertIn("Error de auditoría:", salida.getvalue())
                 self.assertEqual(red.adyacencias, conexiones)

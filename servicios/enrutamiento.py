@@ -8,7 +8,7 @@
 #   - Dijkstra trabaja con ÍNDICES. Los nombres solo se usan al recibir
 #     datos del usuario y al mostrar resultados.
 
-from auditoria import registrar_evento
+from servicios.auditoria import registrar_evento
 
 
 # Representa "todavía no se conoce ningún camino hasta este servidor".

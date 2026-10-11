@@ -1,5 +1,5 @@
 # Tabla hash manual para credenciales; las colisiones se guardan en listas por índice.
-from auditoria import registrar_evento
+from servicios.auditoria import registrar_evento
 
 
 class TablaHash:
