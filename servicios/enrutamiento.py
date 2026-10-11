@@ -16,7 +16,9 @@ from servicios.auditoria import registrar_evento
 INFINITO = float("inf")
 
 
-# Recibe listas paralelas de costos y marcas; consulta el mínimo en O(V) sin modificarlas.
+# Qué hace: busca el servidor no visitado con la menor distancia finita en O(V).
+# Recibe: distancias (lista de costos) y visitados (lista de booleanos), del mismo tamaño.
+# Devuelve: el índice del servidor elegido o None si no quedan candidatos alcanzables.
 def buscar_minimo_no_visitado(distancias, visitados):
     """
     Devuelve el índice del servidor NO visitado con menor distancia.
@@ -34,9 +36,11 @@ def buscar_minimo_no_visitado(distancias, visitados):
     return mejor_indice
 
 
-# Requiere un índice de origen válido y pesos adecuados para Dijkstra (no negativos).
-# No modifica las adyacencias ni escribe el log: la auditoría se hace en calcular_ruta.
-# La selección lineal del mínimo cuesta O(V² + E) y usa O(V) memoria auxiliar.
+# Qué hace: calcula con Dijkstra el costo mínimo del origen a cada servidor.
+# Recibe: red (GrafoRed con pesos no negativos) e indice_origen (índice entero válido).
+# Devuelve: dos listas, distancias y predecesores; los destinos inaccesibles quedan
+# con distancia infinita. No modifica la red ni registra eventos de auditoría.
+# Costo: O(V² + E) tiempo y O(V) memoria auxiliar.
 def dijkstra(red, indice_origen):
     """
     Calcula la menor latencia desde indice_origen hacia todos los servidores.
@@ -84,8 +88,10 @@ def dijkstra(red, indice_origen):
     return distancias, predecesores
 
 
-# Recibe predecesores generados por Dijkstra y un índice de destino alcanzable.
-# Devuelve una lista nueva; no modifica los predecesores. Recorre como máximo V nodos.
+# Qué hace: sigue los predecesores hacia atrás e invierte el recorrido para formar la ruta.
+# Recibe: predecesores (lista generada por Dijkstra) e indice_destino (entero válido
+# de un destino alcanzable).
+# Devuelve: una lista nueva de índices ordenados desde el origen hasta el destino.
 def reconstruir_ruta(predecesores, indice_destino):
     """
     Reconstruye la ruta como lista de índices, desde el origen hasta el destino.
@@ -105,8 +111,9 @@ def reconstruir_ruta(predecesores, indice_destino):
     return ruta
 
 
-# Recibe índices válidos y busca entre los vecinos de A en O(grado(A)).
-# Devuelve el peso del enlace A-B o None si no hay conexión directa.
+# Qué hace: busca la latencia de una conexión directa entre dos servidores.
+# Recibe: red (GrafoRed), indice_a e indice_b (índices enteros válidos).
+# Devuelve: la latencia numérica del enlace o None si no están conectados directamente.
 def buscar_latencia(red, indice_a, indice_b):
     """Devuelve la latencia de la conexión directa entre dos servidores."""
     for vecino, latencia in red.adyacencias[indice_a]:
@@ -115,8 +122,11 @@ def buscar_latencia(red, indice_a, indice_b):
     return None
 
 
-# Coordina validación de nombres, Dijkstra, reconstrucción y auditoría del resultado.
-# No cambia la red; los fallos al registrar el evento se propagan al llamador.
+# Qué hace: valida los servidores, calcula la ruta de menor latencia y audita el resultado.
+# Recibe: red (GrafoRed), nombre_origen y nombre_destino (textos).
+# Devuelve: un diccionario con hay_ruta (booleano), ruta (lista de nombres),
+# latencias_por_salto (lista de números) y latencia_total (número o None si no hay ruta).
+# Lanza ValueError si falta un servidor y OSError si falla la auditoría.
 def calcular_ruta(red, nombre_origen, nombre_destino):
     """
     Calcula la ruta de menor latencia entre dos servidores, dados por nombre.
@@ -202,7 +212,9 @@ def calcular_ruta(red, nombre_origen, nombre_destino):
     return resultado
 
 
-# Presenta en consola el cálculo realizado por calcular_ruta y devuelve su resultado.
+# Qué hace: muestra la ruta, los saltos y el costo de un envío simulado entre servidores.
+# Recibe: red (GrafoRed), nombre_origen y nombre_destino (textos).
+# Devuelve: el diccionario de calcular_ruta y propaga sus errores.
 # Es una simulación: no transmite datos por una red física ni mueve archivos.
 def simular_envio_paquete(red, nombre_origen, nombre_destino):
     """

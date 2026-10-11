@@ -6,7 +6,10 @@ from menus.servidores import seleccionarServidor
 from menus.consola import lin, limpiarConsola, pausarConsola
 
 
-# Recibe los objetos inicializados por main; no reconstruye la red ni los usuarios.
+# Qué hace: muestra el menú principal y abre el área seleccionada por el usuario.
+# Recibe: servidores (lista de objetos Servidor) y red (GrafoRed compartido).
+# Por teclado: la opción del menú; delega las demás entradas a cada submenú.
+# Devuelve: nada; termina al elegir 0 y conserva los objetos recibidos.
 def menuPrincipal(servidores, red):
     while True:
         limpiarConsola()

@@ -3,7 +3,10 @@ from menus.archivos import menuArchivos
 from menus.consola import lin, limpiarConsola, pausarConsola, leerContrasena
 
 
-# Abre archivos solo si la autenticación se completa; 3 vuelve al principal.
+# Qué hace: registra usuarios o comprueba sus credenciales para abrir el menú de archivos.
+# Recibe: servidor, el objeto Servidor cuya tabla de usuarios se utiliza.
+# Por teclado: la opción del menú, el nombre de usuario y la contraseña oculta.
+# Devuelve: nada; la opción 3 regresa al menú principal.
 def menuAutenticacion(servidor):
     while True:
         limpiarConsola()

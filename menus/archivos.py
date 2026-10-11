@@ -2,7 +2,10 @@
 from menus.consola import lin, limpiarConsola, pausarConsola
 
 
-# La opción 0 cierra la sesión y retorna al menú de autenticación.
+# Qué hace: permite crear, buscar, mostrar y eliminar archivos o carpetas.
+# Recibe: servidor, el objeto Servidor sobre cuyo árbol se realizan las operaciones.
+# Por teclado: la opción del menú y los nombres o rutas necesarios para cada operación.
+# Devuelve: nada; la opción 0 cierra la sesión y vuelve al menú de autenticación.
 def menuArchivos(servidor):
     while True:
         limpiarConsola()

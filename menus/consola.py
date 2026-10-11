@@ -7,17 +7,23 @@ from msvcrt import getwch
 lin = "------------------------------------------"
 
 
-# Limpia la pantalla mediante el comando de Windows cls.
+# Qué hace: limpia la pantalla de la terminal ejecutando cls en Windows.
+# Recibe: ningún parámetro.
+# Devuelve: nada.
 def limpiarConsola():
     os.system("cls")
 
 
-# Espera Enter para que el usuario pueda leer el resultado.
+# Qué hace: pausa el programa para permitir que el usuario lea el resultado.
+# Recibe: ningún parámetro; espera que el usuario presione Enter por teclado.
+# Devuelve: nada; continúa después de recibir la entrada.
 def pausarConsola():
     input("\nPresione Enter para continuar...")
 
 
-# Solicita una fecha hasta que sea válida, incluidos los ceros iniciales.
+# Qué hace: pide una fecha y repite la solicitud hasta que el formato y el día sean válidos.
+# Recibe: ningún parámetro; lee por teclado una fecha con formato dd:mm:aaaa.
+# Devuelve: la fecha validada como texto, con los ceros iniciales y sin espacios exteriores.
 def ingresarFecha():
     while True:
         fecha = input("Ingrese la fecha (dd:mm:aaaa): ").strip()
@@ -30,7 +36,10 @@ def ingresarFecha():
         print("Fecha inválida. Use el formato dd:mm:aaaa.")
 
 
-# Captura la contraseña con asteriscos, Retroceso y Enter en Windows.
+# Qué hace: captura una contraseña mostrando asteriscos y permite borrar con Retroceso.
+# Recibe: mensaje (texto del aviso, "Contraseña: " por defecto) y caracteres por teclado.
+# Devuelve: la contraseña como texto al pulsar Enter, conservando sus espacios.
+# Ctrl+C lanza KeyboardInterrupt; las teclas especiales se ignoran.
 def leerContrasena(mensaje="Contraseña: "):
     print(mensaje, end="", flush=True)
     caracteres = []

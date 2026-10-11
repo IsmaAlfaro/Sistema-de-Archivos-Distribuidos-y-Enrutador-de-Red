@@ -242,27 +242,27 @@ Extractos de la conversación; algunos requieren el contexto de capturas o pasos
 
 | Función | Prompt utilizado / extracto | Adaptación y validación |
 |---|---|---|
-| Inicio | `bueno yo me encargo de red de servidores y diagnostico, ahora podemos empezar con esa parte` | Grafo no dirigido con listas paralelas. |
-| Errores | `sigamo ese codigo pero cn esta funcion` | Se adoptó ValueError para duplicados. |
-| Retornos | `es igual al return tur?` | Se eligieron mensajes de confirmación para operaciones exitosas. |
-| Sangría | `asi?` | Se revisaron capturas y se movió la inserción fuera del ciclo de duplicados. |
-| Pruebas | `como pruebo` | Script con aserciones y ejecución reportada por el usuario. |
+| Inicio | `bueno yo me encargo de red de servidores y diagnostico, me gustaria que me explicaras un poco del tema, y me guies en el proceso` | Grafo no dirigido con listas paralelas. |
+| Errores | `sigamos usando ese codigo pero con esta funcion` | Se adoptó ValueError para duplicados. |
+| Retornos | `esto es igual a un return true?` | Se eligieron mensajes de confirmación para operaciones exitosas. |
+| Sangría | `esta funcion deberia tener una sangria?` | Se revisaron capturas y se movió la inserción fuera del ciclo de duplicados. |
+| Pruebas | `guiame a como probar las funciones` | Script con aserciones y ejecución reportada por el usuario. |
 | Ejecución | `cual carpeta me pongo para probar` | Uso de raíz del repositorio e intérprete instalado. |
-| Imports | `meti la prueba a una carpeta y al compilar me sale eso?` | Paquete tests y ejecución como módulo. |
+| Imports | `tengo este error en pruebas, esta en esta funcion pero no lo veo` | Paquete tests y ejecución como módulo. |
 | Eliminación | `listo` / `todo bien` | Pruebas reportadas de eliminación de enlaces. |
-| BFS | `ya hice el diagnostacar red` / `sip` | Pruebas de aislamiento, componentes y ciclos. |
+| BFS | `ya hice el diagnostacar red, esta bien?` | Pruebas de aislamiento, componentes y ciclos. |
 | Menús | `tu me recomiendas meter todos los menus en un archivo o un archivo por menu y una carpeta de menus?` | Organización por áreas prevista para una etapa posterior. |
 | Integración | `lo que vamos a hacer es hacer todo y depues sepepararlo a carpetas, podrias mostrarme no cambiando codigo internamente que haria yo para conectarlo a la funcionalidad del main` (espaciado normalizado) | Menú en main con una red compartida. |
 | Match/case | `podrias hacer el menu de red con switch, quiero ver como se implementa en python` | Selección de opciones con match/case. |
 | Validación manual | `y para provarlo` | Capturas de enlaces, BFS y servidor aislado. |
-| Cachés | `Me podrias decir como ignorar los cahes` | .gitignore y comprobación con Git. |
+| Cachés | `Me podrias decir como ignorar los caches` | .gitignore y comprobación con Git. |
 | README | `quiero que cambies el readme nuevo usando siempre este tipo obviamente con los datos nuevos` | Formato del proyecto anterior con evidencias del actual. |
 | Revisión | `ahora si observa todo el proyecto y dime que errores hay, o optimzaciones o cambios para hacer` | Revisión y reproducción de errores en memoria. |
 | Plan | `okey actualiza el readme con todo lo nuevo y despues me vas guiando para ir poco a poco con todo lo que hay que arreglar, optimizar o mejorar` | Correcciones aplicadas manualmente y comprobadas por etapas. |
 | Comentarios | `quiero primero que hagas el favor de ponerle comentarios a todo el codigo eso puedes hacerlo tu` (extracto, espaciado normalizado) | IA documentó funciones; se comparó la estructura sintáctica para comprobar que la lógica no cambiara. |
 | Unificación | `tu podrias hacerme el favor de unir lo que recomendaste a mi rama? para despues subirlo al main?` | Integración autorizada de las mejoras de ambas ramas, resolución por archivo y pruebas de regresión. |
 | Contraseñas | `con asteriscos` | Captura manual con getwch, edición con Retroceso y máscara en consola; pruebas actualizadas para simular el teclado. |
-| Publicación | `analisa el mi rama y si ya no hay cambios muy drasticos subela al main` | Revisión contra main y verificación de las pruebas antes de publicar los cambios pendientes. |
+| Publicación | `analisa mi rama y si ya no hay cambios muy drasticos subela al main` | Revisión contra main y verificación de las pruebas antes de publicar los cambios pendientes. |
 
 </details>
 
