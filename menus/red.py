@@ -3,7 +3,10 @@ from servicios.enrutamiento import simular_envio_paquete as simularEnvioPaquete
 from menus.consola import lin, limpiarConsola, pausarConsola
 
 
-# Recibe la red compartida y conserva su estado al entrar o salir del menú.
+# Qué hace: permite conectar servidores, quitar enlaces, diagnosticar y simular envíos.
+# Recibe: red, el objeto GrafoRed compartido por la aplicación.
+# Por teclado: opción, nombres de servidores y latencia numérica al agregar un enlace.
+# Devuelve: nada; la opción 0 vuelve al principal conservando el estado de la red.
 def menuRed(red):
     while True:
         limpiarConsola()

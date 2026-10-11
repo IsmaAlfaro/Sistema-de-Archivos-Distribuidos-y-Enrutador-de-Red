@@ -5,6 +5,9 @@ from servicios import auditoria
 from menus.principal import menuPrincipal
 
 
+# Qué hace: crea tres servidores, los agrega a una red y abre el menú principal.
+# Recibe: ningún parámetro; los nombres iniciales se definen dentro de la función.
+# Devuelve: nada; termina cuando el usuario sale del menú principal.
 def main():
     # La inicialización no genera eventos de auditoría.
     auditoria.configurar_auditoria(False)

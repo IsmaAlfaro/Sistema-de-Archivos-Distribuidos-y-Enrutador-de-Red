@@ -1,22 +1,26 @@
 # Nodo del árbol general de archivos: una carpeta admite hijos y un archivo es hoja.
 class NodoArchivo:
     
-    # Recibe el nombre y un booleano de tipo; inicia una lista de hijos vacía.
+    # Qué hace: crea un nodo con una lista de hijos vacía.
+    # Recibe: nombre (texto) y es_carpeta (True para carpeta, False para archivo).
+    # Devuelve: nada; inicializa los datos del objeto.
     def __init__(self, nombre, es_carpeta):
         self.nombre = nombre
         self.es_carpeta = es_carpeta
         self.hijos = []
         
         
-    # Recibe otro NodoArchivo y lo agrega solo si este nodo es una carpeta.
-    # No devuelve un resultado; en archivos no realiza ninguna modificación.
+    # Qué hace: agrega un hijo si el nodo actual es una carpeta; en archivos no lo agrega.
+    # Recibe: hijo, un objeto NodoArchivo.
+    # Devuelve: nada.
     def agregar_hijo(self, hijo):
         if self.es_carpeta:
             self.hijos.append(hijo)
             
             
-    # Busca únicamente entre hijos directos y devuelve el nodo coincidente o None.
-    # Se usa para resolver un nivel de una ruta y detectar nombres repetidos.
+    # Qué hace: busca un nombre únicamente entre los hijos directos del nodo.
+    # Recibe: nombre (texto) del archivo o carpeta que se quiere localizar.
+    # Devuelve: el primer NodoArchivo coincidente o None si no existe.
     def buscar_hijo(self, nombre):
         for hijo in self.hijos:
             if hijo.nombre == nombre:
@@ -25,8 +29,9 @@ class NodoArchivo:
         return None 
 
         
-    # Búsqueda recursiva en profundidad: revisa este nodo y luego sus descendientes.
-    # Devuelve la primera coincidencia por nombre o None si no encuentra ninguna.
+    # Qué hace: busca recursivamente en este nodo y en todos sus descendientes.
+    # Recibe: nombre (texto) del archivo o carpeta que se quiere localizar.
+    # Devuelve: el primer NodoArchivo coincidente o None si no existe.
     def buscar(self, nombre):
         if self.nombre == nombre:
             return self
@@ -40,8 +45,9 @@ class NodoArchivo:
         return None
     
     
-    # Imprime este nodo y su subárbol con dos espacios por nivel; no devuelve datos.
-    # Cada llamada recursiva incrementa el nivel para representar la jerarquía.
+    # Qué hace: muestra este nodo y sus descendientes con sangría según su nivel.
+    # Recibe: nivel (entero, 0 por defecto), usado para calcular la sangría.
+    # Devuelve: nada; imprime el árbol en consola.
     def mostrar_arbol(self, nivel=0):
         print("  " * nivel + self.nombre)
 
@@ -49,9 +55,10 @@ class NodoArchivo:
             hijo.mostrar_arbol(nivel + 1)
          
             
-    # Vacía recursivamente los hijos antes de limpiar la lista de este nodo (postorden).
-    # No elimina este nodo de su padre ni devuelve datos. Python recupera los objetos
-    # cuando dejan de existir referencias a ellos, incluidas las referencias externas.
+    # Qué hace: vacía recursivamente los descendientes y limpia la lista de hijos.
+    # Recibe: ningún dato adicional; utiliza los hijos del nodo actual.
+    # Devuelve: nada; el nodo actual permanece en su padre.
+    # Python libera los nodos cuando ya no quedan referencias a ellos.
     def eliminar_contenido(self):
         for hijo in self.hijos:
             hijo.eliminar_contenido()
@@ -59,9 +66,9 @@ class NodoArchivo:
         self.hijos.clear()
            
             
-     # Elimina únicamente un hijo directo con el nombre recibido.
-    # Vacía su contenido recursivamente antes de retirarlo de esta carpeta.
-    # Devuelve True si lo elimina o False si no existe entre los hijos directos.
+    # Qué hace: vacía un hijo directo y sus descendientes, y lo retira de la lista.
+    # Recibe: nombre (texto) del hijo que se quiere eliminar.
+    # Devuelve: True si lo elimina o False si no encuentra ese hijo.
     def eliminar(self, nombre):
         for hijo in self.hijos:
             if hijo.nombre == nombre:

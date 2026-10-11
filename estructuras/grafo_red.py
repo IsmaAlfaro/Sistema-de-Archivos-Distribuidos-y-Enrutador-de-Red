@@ -6,16 +6,18 @@ from servicios.auditoria import registrar_evento
 
 class GrafoRed:
 
-    # Inicia listas paralelas: servidores[i] identifica al dueño de adyacencias[i].
-    # Cada entrada de vecinos será una tupla (indice_vecino, latencia).
+    # Qué hace: crea las listas vacías de servidores y sus conexiones.
+    # Recibe: ningún dato adicional.
+    # Devuelve: nada; inicializa el grafo. Cada conexión guarda (índice_vecino, latencia).
     def __init__(self):
 
         self.servidores = []
         self.adyacencias = []
 
-    # Recibe un objeto Servidor, verifica nombre único y crea su lista de vecinos.
-    # Devuelve un mensaje de éxito; lanza ValueError si el nombre ya está registrado.
-    # Audita antes de modificar la red y propaga fallos de escritura del log.
+    # Qué hace: verifica el nombre, audita y agrega un servidor sin conexiones.
+    # Recibe: servidor, un objeto Servidor cuyo nombre debe ser único en la red.
+    # Devuelve: un mensaje de confirmación (texto).
+    # Lanza ValueError si el nombre ya existe u OSError si falla la auditoría.
     def agregar_servidor(self, servidor):
         for existente in self.servidores:
             if existente.nombre == servidor.nombre:
@@ -30,9 +32,11 @@ class GrafoRed:
         self.adyacencias.append([])
         return f"Servidor {servidor.nombre} agregado a la red."
 
-    # Recibe dos nombres existentes y una latencia numérica; agrega el enlace en ambos lados.
-    # Rechaza servidores inexistentes, autoenlaces, duplicados y latencias <= 0 con ValueError.
-    # Audita antes de insertar y devuelve un mensaje
+    # Qué hace: valida, audita y agrega una conexión en ambos sentidos.
+    # Recibe: nombre_origen y nombre_destino (textos), y latencia (número positivo y finito).
+    # Devuelve: un mensaje de confirmación (texto).
+    # Lanza ValueError por servidores inexistentes, autoenlaces, enlaces repetidos
+    # o latencias inválidas; OSError si falla la auditoría.
     def agregar_conexion(self, nombre_origen, nombre_destino,latencia):
       origen = self.buscar_indice(nombre_origen)
       destino = self.buscar_indice(nombre_destino)
@@ -63,17 +67,19 @@ class GrafoRed:
       return f"Conexión agregada entre {nombre_origen} y {nombre_destino} con latencia {latencia}."
 
 
-    # Busca un nombre secuencialmente en O(V) y devuelve su índice o None.
-    # El índice 0 es válido; quien llama debe distinguirlo de None.
+    # Qué hace: recorre la lista de servidores hasta encontrar el nombre solicitado.
+    # Recibe: nombre (texto) del servidor que se busca.
+    # Devuelve: su índice entero, incluido 0, o None si no existe. Costo: O(V).
     def buscar_indice(self, nombre):
         for indice in range (len(self.servidores)):
             if self.servidores[indice].nombre == nombre:
                 return indice
         return None
 
-    # Localiza y elimina un enlace en ambos sentidos, conservando los servidores.
-    # Devuelve un mensaje o lanza ValueError si falta un servidor o la conexión.
-    # Registra el evento antes del borrado; un error de auditoría se propaga.
+    # Qué hace: audita y elimina la conexión en ambos sentidos, conservando los servidores.
+    # Recibe: nombre_origen y nombre_destino (textos) de los extremos del enlace.
+    # Devuelve: un mensaje de confirmación (texto).
+    # Lanza ValueError si falta un servidor o el enlace; OSError si falla la auditoría.
     def eliminar_conexion(self, nombre_origen, nombre_destino):
         origen = self.buscar_indice(nombre_origen)
         destino = self.buscar_indice(nombre_destino)
@@ -106,9 +112,11 @@ class GrafoRed:
 
         return f"Conexión eliminada entre {nombre_origen} y {nombre_destino}."
 
-    # Ejecuta BFS desde el nombre recibido; lanza ValueError si no existe el origen.
-    # Devuelve un diccionario con recorrido, no_alcanzables, aislados y red_conectada.
-    # Usa O(V + E) tiempo en el peor caso y O(V) memoria auxiliar; no cambia la red.
+    # Qué hace: recorre la red con BFS y detecta servidores inaccesibles o aislados.
+    # Recibe: nombre_origen (texto) del servidor donde comienza el recorrido.
+    # Devuelve: un diccionario con recorrido, no_alcanzables y aislados (listas de
+    # nombres), y red_conectada (booleano). Lanza ValueError si el origen no existe.
+    # Usa O(V + E) tiempo y O(V) memoria auxiliar; no modifica la red.
     def diagnosticar_red(self, nombre_origen):
         origen = self.buscar_indice(nombre_origen)
 

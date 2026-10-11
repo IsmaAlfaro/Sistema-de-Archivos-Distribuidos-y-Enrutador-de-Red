@@ -3,7 +3,10 @@ from servicios import auditoria as moduloAuditoria
 from menus.consola import lin, limpiarConsola, pausarConsola, ingresarFecha
 
 
-# Consulta el registro y captura errores de acceso al archivo.
+# Qué hace: permite consultar todo el historial o filtrarlo por fecha y muestra errores de acceso.
+# Recibe: ningún parámetro; utiliza el archivo configurado en servicios.auditoria.
+# Por teclado: la opción del menú y una fecha dd:mm:aaaa si se elige un filtro.
+# Devuelve: nada; la opción 0 regresa al menú principal.
 def menuAuditoria():
     while True:
         limpiarConsola()

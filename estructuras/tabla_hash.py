@@ -4,8 +4,9 @@ from servicios.auditoria import registrar_evento
 
 class TablaHash:
 
-    # Crea los buckets, valida el tamaño y cuenta los usuarios registrados.
-    # La tabla crece cuando supera el factor de carga máximo.
+    # Qué hace: crea las listas de usuarios e inicia el contador y el límite de carga.
+    # Recibe: tamaño (entero positivo, 10 por defecto) y nombre_servidor (texto o None).
+    # Devuelve: nada; inicializa la tabla. Lanza ValueError si el tamaño es inválido.
     def __init__(self, tamaño=10, nombre_servidor=None):
 
         if type (tamaño) is not int or tamaño <= 0:
@@ -17,8 +18,9 @@ class TablaHash:
         self.cantidad = 0
         self.factor_maximo = 0.75 #Factor de carga máximo permitido antes de redimensionar la tabla hash
 
-    # Hash polinómico de base 7 que considera el orden de los caracteres.
-    # Aplica el módulo en cada paso para mantener acotado el acumulador.
+    # Qué hace: calcula la posición del usuario con un hash de base 7 y módulo por paso.
+    # Recibe: usuario (texto), cuyo orden de caracteres influye en el cálculo.
+    # Devuelve: un índice entero entre 0 y tamaño - 1.
     def funcion_hash(self, usuario):
         suma = 0
 
@@ -27,9 +29,11 @@ class TablaHash:
 
         return suma 
 
-    # Busca duplicados solo en el bucket correspondiente al nombre recibido.
-    # Devuelve False si el usuario existe; audita, guarda (usuario, contraseña) y
-    # devuelve True si es nuevo. Un error de auditoría interrumpe antes de insertar.
+    # Qué hace: quita espacios exteriores del usuario, valida las credenciales,
+    # audita el registro y las guarda; amplía la tabla si supera el límite de carga.
+    # Recibe: usuario y contraseña (textos); conserva los espacios de la contraseña.
+    # Devuelve: True si registra al usuario o False si ese nombre ya existe.
+    # Lanza ValueError por credenciales vacías y OSError si falla la auditoría.
     def registrar_usuario(self, usuario, contraseña):
         usuario = usuario.strip()
 
@@ -64,8 +68,10 @@ class TablaHash:
 
         return True
 
-    # Compara las credenciales recibidas con las entradas del bucket calculado.
-    # Devuelve True si coinciden o False en otro caso y audita ambos resultados.
+    # Qué hace: busca al usuario, compara la contraseña exacta y audita el resultado.
+    # Recibe: usuario y contraseña (textos); quita espacios exteriores del usuario.
+    # Devuelve: True si las credenciales coinciden o False en caso contrario.
+    # Si falla la auditoría, lanza OSError.
     def autenticar(self, usuario, contraseña):
         usuario = usuario.strip()
         indice = self.funcion_hash(usuario)
@@ -92,8 +98,10 @@ class TablaHash:
 
         return False
         
-    # Duplica las posiciones y redistribuye todas las credenciales.
-    # Conserva la cantidad de usuarios y no genera nuevos eventos de registro.
+    # Qué hace: duplica la capacidad y recalcula la posición de todas las credenciales.
+    # Recibe: ningún dato adicional; utiliza el tamaño y los usuarios de esta tabla.
+    # Devuelve: nada; actualiza la tabla conservando usuarios, contraseñas y contador.
+    # No genera nuevos eventos de registro en auditoría.
     def redimensionar(self):
         tabla_anterior = self.tabla
 

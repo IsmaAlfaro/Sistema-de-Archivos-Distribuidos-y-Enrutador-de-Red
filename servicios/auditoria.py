@@ -11,9 +11,9 @@ _ruta_archivo = _RUTA_ARCHIVO_PREDETERMINADA
 _auditoria_activa = False  # main() la activa; los scripts de prueba parten con ella desactivada.
 
 
-# Activa/desactiva el registro y permite indicar una ruta alternativa para pruebas.
-# Si ruta_archivo es None, restablece la ruta predeterminada en datos/.
-# Modifica la configuración global; no crea el archivo ni devuelve datos.
+# Qué hace: activa o desactiva la auditoría y configura dónde se guarda el historial.
+# Recibe: activa (booleano) y ruta_archivo (texto, Path o None para usar datos/).
+# Devuelve: nada; actualiza la configuración global sin crear el archivo.
 def configurar_auditoria(activa, ruta_archivo=None):
     global _auditoria_activa, _ruta_archivo
 
@@ -25,10 +25,10 @@ def configurar_auditoria(activa, ruta_archivo=None):
         _ruta_archivo = Path(ruta_archivo)
 
 
-# Agrega un evento con origen, acción y fecha/hora al final del archivo.
-# Devuelve False si la auditoría está desactivada y True después de escribir.
-# Revisa únicamente el último byte para evitar unir dos registros.
-# Si falla la apertura o escritura, lanza OSError.
+# Qué hace: agrega un evento con la fecha y hora actuales al final del historial.
+# Recibe: origen (texto del módulo) y accion (texto que describe lo ocurrido).
+# Devuelve: True si escribe el evento o False si la auditoría está desactivada.
+# Revisa el último byte para separar registros; lanza OSError si falla la escritura.
 def registrar_evento(origen, accion):
     if not _auditoria_activa:
         return False
@@ -60,8 +60,9 @@ def registrar_evento(origen, accion):
     return True
 
 
-# Recibe texto dd:mm:aaaa, quita espacios exteriores y devuelve un objeto date.
-# Lanza ValueError si el tipo, la fecha del calendario o su formato no son válidos.
+# Qué hace: quita espacios exteriores y comprueba el formato y la validez de una fecha.
+# Recibe: fechaTemp (texto con formato dd:mm:aaaa, por ejemplo 08:10:2026).
+# Devuelve: un objeto date; lanza ValueError si el dato o la fecha son inválidos.
 def validarFecha(fechaTemp):
     if not isinstance(fechaTemp, str):
         raise ValueError("Fecha inválida. Use el formato dd:mm:aaaa.")
@@ -83,9 +84,11 @@ def validarFecha(fechaTemp):
     return fechaConvertidaTemp
 
 
-# Lee el log y devuelve tuplas (origen, acción, fecha_date, fecha_hora_texto).
-# Un archivo vacío devuelve []; uno inexistente lanza FileNotFoundError.
-# Omite registros de formato inválido con un aviso y propaga errores de acceso.
+# Qué hace: lee el historial configurado y omite con un aviso las líneas mal formadas.
+# Recibe: ningún parámetro; utiliza la ruta guardada en _ruta_archivo.
+# Devuelve: una lista de tuplas (origen, acción, fecha_date, fecha_hora_texto);
+# devuelve [] si no hay registros válidos. Lanza FileNotFoundError si falta el archivo
+# y propaga los errores de acceso o lectura.
 def obtenerRegistros():
     if not _ruta_archivo.exists():
         raise FileNotFoundError(
@@ -147,8 +150,9 @@ def obtenerRegistros():
     return registrosTemp
 
 
-# Recibe las tuplas de obtenerRegistros y muestra origen, acción y fecha/hora.
-# Solo presenta los datos: no consulta el archivo, no filtra y no devuelve resultados.
+# Qué hace: muestra en consola el origen, la acción y la fecha/hora de cada registro.
+# Recibe: registrosTemp, una lista de tuplas devuelta por obtenerRegistros.
+# Devuelve: nada; únicamente imprime los datos recibidos.
 def imprimirRegistros(registrosTemp):
     for registroTemp in registrosTemp:
         origenTemp = registroTemp[0]
@@ -161,8 +165,10 @@ def imprimirRegistros(registrosTemp):
         print()
 
 
-# Consulta e imprime el historial completo. Devuelve True si mostró registros,
-# False si el archivo está vacío y propaga los errores de obtenerRegistros.
+# Qué hace: consulta el archivo de auditoría y muestra todos sus registros válidos.
+# Recibe: ningún parámetro; utiliza el historial configurado.
+# Devuelve: True si muestra registros o False si no hay registros válidos.
+# Propaga los errores de lectura de obtenerRegistros.
 def leerRegistro():
     registrosTemp = obtenerRegistros()
 
@@ -174,8 +180,10 @@ def leerRegistro():
     return True
 
 
-# Recibe dd:mm:aaaa e imprime registros de esa fecha en adelante (límite inclusivo).
-# Devuelve True si hay coincidencias o False si no; propaga errores de fecha/lectura.
+# Qué hace: muestra los eventos de la fecha indicada en adelante, incluyendo ese día.
+# Recibe: fecha (texto con formato dd:mm:aaaa).
+# Devuelve: True si muestra coincidencias o False si no encuentra ninguna.
+# Propaga los errores de validación de fecha y de lectura del historial.
 def leerRegistroDesde(fecha):
     fechaInicioTemp = validarFecha(fecha)
     registrosTemp = obtenerRegistros()
@@ -198,8 +206,10 @@ def leerRegistroDesde(fecha):
     return True
 
 
-# Recibe dd:mm:aaaa e imprime únicamente los registros del mismo día, sin importar hora.
-# Devuelve True si hay coincidencias o False si no; propaga errores de fecha/lectura.
+# Qué hace: muestra únicamente los eventos del día indicado, sin importar la hora.
+# Recibe: fecha (texto con formato dd:mm:aaaa).
+# Devuelve: True si muestra coincidencias o False si no encuentra ninguna.
+# Propaga los errores de validación de fecha y de lectura del historial.
 def leerRegistroFecha(fecha):
     fechaEspecificaTemp = validarFecha(fecha)
     registrosTemp = obtenerRegistros()
