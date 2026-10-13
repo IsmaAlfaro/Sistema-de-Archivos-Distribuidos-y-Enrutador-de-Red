@@ -57,14 +57,13 @@ BFS no registra un evento actualmente. Su recorrido no es una ruta de envío.
 - **Dijkstra:** selección lineal del mínimo no visitado, relajación y reconstrucción con predecesores.
 - **Auditoría:** append UTF-8 con fecha y hora. Revisa solo el último byte antes de escribir para no unir registros, sin leer todo el historial.
 - **Excepciones:** los menús distinguen operaciones inválidas (`ValueError`) y fallos del archivo de auditoría (`OSError`).
+- **Referencias entre estructuras:** en Python no hay punteros crudos; los objetos se enlazan por referencias. `GrafoRed.servidores` guarda referencias a objetos `Servidor`, y cada `Servidor` es dueño de su árbol (`raiz`) y de su `TablaHash`. Las aristas guardan solo índices enteros y la latencia, así que modificar o vaciar un árbol no afecta la red. Los nodos del árbol referencian a sus hijos pero no a su padre, por lo que no hay ciclos: al quitar un hijo de la lista del padre, el recolector de basura libera el subárbol.
 
 ## Ejecución y pruebas
 
-Requiere **Windows y Python 3.10 o superior**. No hay dependencias externas.
-La captura con asteriscos utiliza `msvcrt.getwch`; ejecutar en una terminal real,
-como la terminal integrada de VS Code. La máscara oculta la escritura en pantalla,
-pero no cambia el almacenamiento en memoria de las contraseñas.
-Ejecutar desde la raíz del repositorio:
+Requiere **Python 3.10 o superior**. No hay dependencias externas. En Windows la
+contraseña se captura con asteriscos (`msvcrt.getwch`); en otros sistemas se usa
+`getpass`, que oculta la escritura. Ejecutar desde la raíz del repositorio:
 
 ```bash
 python main.py
@@ -281,8 +280,22 @@ inexistentes, destinos desconectados y origen igual al destino; devuelve ruta,
 latencias por salto y costo total. La lógica coincide en las dos ramas comparadas.
 La unificación conserva además las validaciones y pruebas de Carlos.
 
-Pendiente documental: Carlos debe aportar los prompts utilizados y sus
-adaptaciones; no se reconstruyen conversaciones que no fueron compartidas.
+| `43f7049` | Eliminación por ruta exacta (`buscar_hijo`), rechazo de nombres vacíos o con `/`, hash de base 7, retiro de `grafo.py` duplicado, traslado de `practica_grafo.py` a `tests/practica_enrutamiento.py`, y nuevas `tests/prueba_arbol.py` y `prueba_hash.py`. |
+
+<details>
+<summary><strong>Prompts y adaptación - Carlos</strong></summary>
+
+| Prompt utilizado | Propósito | Adaptación y validación |
+|---|---|---|
+| `NO quiero que arregles todo de una vez. Vamos a trabajar POR ETAPAS.` | Auditar el proyecto contra el PDF antes de modificarlo | Se recibió una tabla de requisitos y una lista de problemas; Carlos eligió cuáles corregir. Los cambios los escribió a mano. |
+| `Empecemos con lo de la eliminacion y dime si es tan facil con solo borrar grafo.py` | Corregir la eliminación por ruta | La IA indicó usar `padre.buscar_hijo(nombre)` en `eliminar_nodo` y quitar de `NodoArchivo.eliminar` la recursión hacia ramas hermanas. Carlos lo aplicó (`43f7049`) y comprobó con `tests/prueba_arbol.py`, que usa referencias débiles. |
+| `pero necesito que me digas que cambiar, no que lo cambies tu` | Definir la forma de trabajo | La IA pasó a indicar cambios antes/después y el equipo los escribió a mano. |
+
+**Fragmento generado y ajuste manual (hash).** La IA propuso `suma = suma * 7 + ord(letra)` y advirtió que la base 31 daría los mismos índices que la suma simple con 10 buckets, porque 31 ≡ 1 (mod 10). Carlos lo aplicó y comprobó que `ana`, `naa` y `aan` ya no colisionan. Después Ismael acotó el acumulador con `% tamaño` en cada paso.
+
+<prompts de enrutamiento.py: pegar aquí, textuales, los de la conversación original>
+
+</details>
 
 ### Módulo Auditoría y Menús - Andrés Segura
 
@@ -312,6 +325,10 @@ reportadas. Los eventos de autenticación se generan en `TablaHash`, no en BFS.
 | `a683f82`, `8068b6e` | Avances de Ismael posteriores a la base común `888f9a8`. |
 | `f84ccd8`, `009e9d5` | Documentación posterior al PR #10 en main. |
 | `77b8d4c`, `a6ea90f`, `6e07e43` | Unificación, validaciones posteriores e integración de Ismael-Dev en main mediante PR #11. |
+| `47a39b8` | Contraseñas con asteriscos y verificación de autenticación. |
+| `0f6c00b`, `6c48d59` | Redimensionamiento de la tabla hash y validaciones de inicio de sesión; PR #12. |
+| `a803c36`, `bfcc903` | Separación en carpetas y un archivo por menú; PR #13. |
+| `d5a70e3`, `87cfdb9` | Cambio de comentarios; PR #14. |
 
 Las tablas de módulos y esta sección identifican los commits revisados. No son
 un registro de todas las operaciones de fetch o push.
