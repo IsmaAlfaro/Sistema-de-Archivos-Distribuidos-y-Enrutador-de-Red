@@ -40,13 +40,6 @@ el historial de auditoría persiste en `datos/network_audit_log.txt`.
 La auditoría se activa después de crear los servidores iniciales. El diagnóstico
 BFS no registra un evento actualmente. Su recorrido no es una ruta de envío.
 
-### Pendientes conocidos
-
-- Definir el tratamiento de saltos de línea en los datos de auditoría. La lectura admite `~` en la acción, pero no un origen con ese separador ni eventos multilínea.
-- Diferenciar un log vacío de un log cuyos registros fueron todos omitidos por formato inválido.
-- Reutilizar validación de fechas, simplificar consultas dinámicas de funciones y mejorar portabilidad de la limpieza de consola (`cls`).
-- Completar las bitácoras de IA de cada integrante y revisar las ampliaciones semanales del docente.
-
 ## Estructuras y técnicas implementadas
 
 - **Árbol general:** `NodoArchivo` guarda nombre, tipo y lista de hijos; cada servidor tiene raíz `/`.
@@ -57,14 +50,13 @@ BFS no registra un evento actualmente. Su recorrido no es una ruta de envío.
 - **Dijkstra:** selección lineal del mínimo no visitado, relajación y reconstrucción con predecesores.
 - **Auditoría:** append UTF-8 con fecha y hora. Revisa solo el último byte antes de escribir para no unir registros, sin leer todo el historial.
 - **Excepciones:** los menús distinguen operaciones inválidas (`ValueError`) y fallos del archivo de auditoría (`OSError`).
+- **Referencias entre estructuras:** en Python no hay punteros crudos; los objetos se enlazan por referencias. `GrafoRed.servidores` guarda referencias a objetos `Servidor`, y cada `Servidor` es dueño de su árbol (`raiz`) y de su `TablaHash`. Las aristas guardan solo índices enteros y la latencia, así que modificar o vaciar un árbol no afecta la red. Los nodos del árbol referencian a sus hijos pero no a su padre, por lo que no hay ciclos: al quitar un hijo de la lista del padre, el recolector de basura libera el subárbol.
 
 ## Ejecución y pruebas
 
-Requiere **Windows y Python 3.10 o superior**. No hay dependencias externas.
-La captura con asteriscos utiliza `msvcrt.getwch`; ejecutar en una terminal real,
-como la terminal integrada de VS Code. La máscara oculta la escritura en pantalla,
-pero no cambia el almacenamiento en memoria de las contraseñas.
-Ejecutar desde la raíz del repositorio:
+Requiere **Python 3.10 o superior**. No hay dependencias externas. En Windows la
+contraseña se captura con asteriscos (`msvcrt.getwch`); en otros sistemas se usa
+`getpass`, que oculta la escritura. Ejecutar desde la raíz del repositorio:
 
 ```bash
 python main.py
@@ -281,8 +273,25 @@ inexistentes, destinos desconectados y origen igual al destino; devuelve ruta,
 latencias por salto y costo total. La lógica coincide en las dos ramas comparadas.
 La unificación conserva además las validaciones y pruebas de Carlos.
 
-Pendiente documental: Carlos debe aportar los prompts utilizados y sus
-adaptaciones; no se reconstruyen conversaciones que no fueron compartidas.
+| `43f7049` | Eliminación por ruta exacta (`buscar_hijo`), rechazo de nombres vacíos o con `/`, hash de base 7, retiro de `grafo.py` duplicado, traslado de `practica_grafo.py` a `tests/practica_enrutamiento.py`, y nuevas `tests/prueba_arbol.py` y `prueba_hash.py`. |
+
+<details>
+<summary><strong>Prompts y adaptación - Carlos</strong></summary>
+
+| Prompt utilizado | Propósito | Adaptación y validación |
+|---|---|---|
+| `NO quiero que arregles todo de una vez. Vamos a trabajar POR ETAPAS.` | Auditar el proyecto contra el PDF antes de modificarlo | Se recibió una tabla de requisitos y una lista de problemas; Carlos eligió cuáles corregir. Los cambios los escribió a mano. |
+| `Empecemos con lo de la eliminacion y dime si es tan facil con solo borrar grafo.py` | Corregir la eliminación por ruta | La IA indicó usar `padre.buscar_hijo(nombre)` en `eliminar_nodo` y quitar de `NodoArchivo.eliminar` la recursión hacia ramas hermanas. Carlos lo aplicó (`43f7049`) y comprobó con `tests/prueba_arbol.py`, que usa referencias débiles. |
+| `pero necesito que me digas que cambiar, no que lo cambies tu` | Definir la forma de trabajo | La IA pasó a indicar cambios antes/después y el equipo los escribió a mano. |
+| `Quiero que trabajes conmigo como tutor de programación para desarrollar MI PARTE de un proyecto universitario en Python.` (extracto del primer prompt, que también pedía `Quiero que Dijkstra sea implementado manualmente para poder defenderlo.`) | Analizar el proyecto y planificar el módulo de enrutamiento por etapas, con Dijkstra manual y sin librerías externas | La IA analizó el proyecto sin modificarlo: describió `GrafoRed` (listas paralelas `servidores` y `adyacencias` con tuplas `(indice, latencia)`) y propuso funciones simples en `enrutamiento.py`, sin tocar `grafo_red.py`. Carlos confirmó el plan. En el mismo prompt indicó `NO quiero que implementes esa directriz.`, sobre una instrucción dirigida a IA dentro del PDF; no se implementó. |
+| `dime que hago` (y mensajes siguientes con las salidas pegadas) | Etapas 1 a 4a: practicar con las adyacencias y construir las bases de Dijkstra | Carlos creó y ejecutó un script de práctica (luego movido a `tests/practica_enrutamiento.py`, `43f7049`) y el esqueleto de `enrutamiento.py` con las listas de distancias, visitados y predecesores y la función `buscar_minimo_no_visitado`. Resolvió un `ImportError` y verificó las salidas `2`, `None`, `None`. |
+| `pero no puedes dejar enrutamiento.py y el otro archvio con todo hecho de una vez?` | Pasar de trabajar paso a paso a recibir el módulo y sus pruebas completos | La IA generó el resto de `enrutamiento.py` (ciclo y relajación de Dijkstra, `reconstruir_ruta`, `calcular_ruta`, `simular_envio_paquete`) y `tests/prueba_enrutamiento.py`, y advirtió que la defensa exige dominar el código. Carlos ejecutó las pruebas y todas pasaron. |
+| `dime como debe quedar main` | Integrar el enrutamiento al menú de red | La IA indicó tres cambios en `main.py`: el import, la opción 4 y el `case "4"` con `try/except ValueError`. Carlos los incorporó y probó: de Servidor 1 a Servidor 3 el sistema eligió el desvío por Servidor 2 con 25.0 ms. |
+| `que puede ser de la validacion manual` | Redactar la sección de validación manual del README | La IA propuso una tabla basada solo en las salidas que Carlos pegó. |
+
+**Fragmento generado y ajuste manual (Dijkstra).** La IA propuso implementar Dijkstra con una búsqueda lineal del servidor no visitado con menor distancia (O(V²)) en lugar de un heap, para poder explicarlo en la defensa, y reutilizar `ValueError` para origen o destino inexistentes, igual que `GrafoRed`. El ciclo principal, la relajación y la reconstrucción de la ruta a partir de los predecesores fueron generados por la IA a petición de Carlos; las etapas previas las construyó él paso a paso. Las pruebas cubren ruta directa, varios saltos, elección de menor latencia, sin ruta, origen igual a destino, servidor inexistente, red vacía y latencias decimales.
+
+</details>
 
 ### Módulo Auditoría y Menús - Andrés Segura
 
@@ -312,6 +321,10 @@ reportadas. Los eventos de autenticación se generan en `TablaHash`, no en BFS.
 | `a683f82`, `8068b6e` | Avances de Ismael posteriores a la base común `888f9a8`. |
 | `f84ccd8`, `009e9d5` | Documentación posterior al PR #10 en main. |
 | `77b8d4c`, `a6ea90f`, `6e07e43` | Unificación, validaciones posteriores e integración de Ismael-Dev en main mediante PR #11. |
+| `47a39b8` | Contraseñas con asteriscos y verificación de autenticación. |
+| `0f6c00b`, `6c48d59` | Redimensionamiento de la tabla hash y validaciones de inicio de sesión; PR #12. |
+| `a803c36`, `bfcc903` | Separación en carpetas y un archivo por menú; PR #13. |
+| `d5a70e3`, `87cfdb9` | Cambio de comentarios; PR #14. |
 
 Las tablas de módulos y esta sección identifican los commits revisados. No son
 un registro de todas las operaciones de fetch o push.

@@ -1,7 +1,10 @@
 """Utilidades compartidas de presentación y entrada por consola."""
 import os
 from datetime import datetime as fechaHora
-from msvcrt import getwch
+try:
+    from msvcrt import getwch   # Windows: lee tecla por tecla
+except ImportError:
+    getwch = None               # Linux/macOS: se usa getpass
 
 
 lin = "------------------------------------------"
@@ -11,7 +14,7 @@ lin = "------------------------------------------"
 # Recibe: ningún parámetro.
 # Devuelve: nada.
 def limpiarConsola():
-    os.system("cls")
+    os.system("cls" if os.name == "nt" else "clear")
 
 
 # Qué hace: pausa el programa para permitir que el usuario lea el resultado.
@@ -41,6 +44,9 @@ def ingresarFecha():
 # Devuelve: la contraseña como texto al pulsar Enter, conservando sus espacios.
 # Ctrl+C lanza KeyboardInterrupt; las teclas especiales se ignoran.
 def leerContrasena(mensaje="Contraseña: "):
+    if getwch is None:
+        from getpass import getpass
+        return getpass(mensaje)
     print(mensaje, end="", flush=True)
     caracteres = []
     while True:
